@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using excel = Microsoft.Office.Interop.Excel;
 using LicenseContext = OfficeOpenXml.LicenseContext;
+using Microsoft.VisualBasic;
 
 namespace In86
 {
@@ -19,13 +20,19 @@ namespace In86
     {
         private string arquivo;
         private string arquivo1;
-        private string mensagem;
+        List<string> calcTempC = new List<string>();
+        List<string> calcTempB = new List<string>();
+        List<string> calcR200 = new List<string>();
         List<string> C100 = new List<string>();
         List<string> A100 = new List<string>();
         List<string> C113 = new List<string>();
         List<string> R200 = new List<string>();
         List<string> R150 = new List<string>();
         List<string> R1100 = new List<string>();
+        List<string> R0 = new List<string>();
+        List<string> C100Temp = new List<string>();
+        public bool carregado = false;
+        public bool carregadoPis = false;
 
         public frmIn86()
         {
@@ -55,9 +62,6 @@ namespace In86
             {
                 txtArquivo.Text = openFileDialog1.FileName;
                 arquivo = openFileDialog1.FileName;
-
-                txtCarga.Enabled = true;
-                btnSearch1.Enabled = true;
             }
         }
 
@@ -68,1418 +72,2704 @@ namespace In86
 
         private void btnConverter_Click(object sender, EventArgs e)
         {
-
-            int counter = 0;
-            string line;
-
-            line = CarregaListaDados(ref counter);
-
-            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-
-            using (var excelPackage = new ExcelPackage())
+            if (carregado && carregadoPis)
             {
-                excelPackage.Workbook.Properties.Title = "IN86";
+                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
-                int i, num;
-                string[] titulos;
+                using (var excelPackage = new ExcelPackage())
+                {
+                    excelPackage.Workbook.Properties.Title = "IN86";
+                    var sheet = excelPackage.Workbook.Worksheets.Add("Bloco A");
 
-                GerarBlocoC(excelPackage, out i, out titulos, out num);
+                    int i, num;
 
-                num = GerarBlocoA(excelPackage, out i, num, out titulos);
+                    string caminho, path;
 
-                num = GerarBlocoR200(excelPackage, out i, num, out titulos);
+                    float calcFatValRBNCT, calcFatValRBNCNT, calcFatValRBNCE, calcIndRBNCT, calcIndRBNCNT, calcIndRBNCE, calcFatValTotal, calcFacIndTotal, calcPercIndRBNCT, calcPercIndRBNCNT, calcPercIndRBNCE;
 
-                num = GerarBlocoR150(excelPackage, out i, num, out titulos);
+                    CalculoFaturamento(out calcFatValRBNCT, out calcFatValRBNCNT, out calcFatValRBNCE, out calcIndRBNCT, out calcIndRBNCNT, out calcIndRBNCE, out calcFatValTotal, out calcFacIndTotal, out calcPercIndRBNCT, out calcPercIndRBNCNT, out calcPercIndRBNCE);
 
-                GerarBloco431(excelPackage, out i, out titulos);
+                    GerarBlocoC(sheet, out i, out caminho, out path);
 
-                GerarBloco432(excelPackage, out i, out titulos);
+                    GerarBLocoA(sheet, out i, out num, caminho, path);
 
-                GerarBloco433(excelPackage, out i, out titulos);
+                    GerarBlocoR0200(sheet, out i, num, out caminho, out path);
 
-                GerarBloco434(excelPackage, out i, out titulos);
+                    GerarBlocoR0150(out i, out caminho, out path);
 
-                GerarBloco438(excelPackage, out i, out titulos);
+                    GerarBloco431(sheet, out i, num, out caminho, out path);
 
-                GerarBloco439(excelPackage, out i, out titulos);
+                    GerarBloco432(sheet, out i, out caminho, out path);
 
-                GerarBloco4103(excelPackage, out i, out titulos);
+                    GerarBloco433(sheet, out i, out caminho, out path);
 
-                GerarBloco4104(excelPackage, out i, out titulos);
+                    GerarBloco434(sheet, out i, out caminho, out path);
 
-                GerarBloco4105(excelPackage, out i, out titulos);
+                    GerarBloco438(sheet, out i, out caminho, out path);
 
-                GerarBloco4106(excelPackage, out i, out titulos);
+                    GerarBloco439(sheet, out i, out caminho, out path);
 
-                GerarBloco1CE(excelPackage, out i, out num, out titulos);
+                    GerarBloco4101(sheet, out i, out caminho, out path);
 
-                GerarBloco441(excelPackage, out i, out titulos);
+                    GerarBLoco4104(sheet, out i, out caminho, out path, calcIndRBNCT, calcIndRBNCNT, calcIndRBNCE);
 
-                GerarBloco442(excelPackage, out i, out titulos);
+                    GerarBloco4105(sheet, out i, out caminho, out path, calcIndRBNCT, calcIndRBNCNT, calcIndRBNCE, calcPercIndRBNCT);
 
-                GerarBlocoFaturamento(excelPackage); string caminho = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                
-                string path = caminho + @"\IN86.xlsx";
-                File.WriteAllBytes(path, excelPackage.GetAsByteArray());
-                MessageBox.Show("Concluído. Verifique em " + path + ".xls");
+                    GerarBloco4106(sheet, out i, out caminho, out path, calcIndRBNCT, calcIndRBNCNT, calcIndRBNCE);
+
+                    GerarBloco1CE(sheet, out i, out num, out caminho, out path);
+
+                    GerarBloco441(sheet, out i, num, out caminho, out path);
+
+                    GerarBloco442(sheet, out i, num, out caminho, out path);
+
+                    MessageBox.Show("Concluído. Verifique em " + Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));
+                }
+            }
+            else
+            {
+                MessageBox.Show("Favor carregar os dados para dar inicio ao processo de conversão", "Aviso", MessageBoxButtons.OK);
             }
         }
 
-        private static void GerarBlocoFaturamento(ExcelPackage excelPackage)
+        private void GerarBloco442(ExcelWorksheet sheet, out int i, int num, out string caminho, out string path)
         {
-            // Aqui simplesmente adiciono a planilha inicial
-            var sheet17 = excelPackage.Workbook.Worksheets.Add("Faturamento");
-            sheet17.Name = "Faturamento";
+            // Inicio do bloco 4.4.2
+            StreamWriter x;
 
-            sheet17.Cells[1, 1].Value = "Informações do FATURAMENTO (Registro 0111 - Sped Contribuições)";
-            sheet17.Cells[3, 1].Value = "Receita Bruta Não Cumulativa TRIBUTADA mercado interno (campo 02)";
-            sheet17.Cells[5, 1].Value = "Receita Bruta Não Cumulativa NÃO TIBUTADA mercado interno (campo 03)";
-            sheet17.Cells[7, 1].Value = "Receita Bruta Não Cumulativa EXPORTAÇÃO (campo 04)";
-            sheet17.Cells[9, 1].Value = "Receita Bruta Total (campo 06)";
-
-            sheet17.Cells[2, 2].Value = "Valores R$";
-            sheet17.Cells[3, 2].Value = "172577237,77";
-            sheet17.Cells[5, 2].Value = "655653,72";
-            sheet17.Cells[7, 2].Value = "17154200,75";
-            sheet17.Cells[9, 2].Value = "190387091,74";
-
-            sheet17.Cells[2, 3].Value = "Indice Part";
-            sheet17.Cells[3, 3].Formula = "B3/B9";
-            sheet17.Cells[5, 3].Formula = "B5/B9";
-            sheet17.Cells[7, 3].Formula = "B7/B9";
-            sheet17.Cells[9, 3].Value = "=SOMA(C3:C8)";
-
-            sheet17.Cells[3, 4].Formula = "C3*100";
-            sheet17.Cells[5, 4].Formula = "C5*100";
-            sheet17.Cells[7, 4].Formula = "C7*100";
-
-        }
-
-        private void GerarBloco442(ExcelPackage excelPackage, out int i, out string[] titulos)
-        {
-            // Aqui simplesmente adiciono a planilha inicial
-            var sheet16 = excelPackage.Workbook.Worksheets.Add("4.4.2");
-            sheet16.Name = "4.4.2";
+            caminho = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            path = caminho + @"\Bloco4.4.2.txt";
+            x = File.CreateText(path);
 
             // Títulos
-            i = 1;
-            titulos = new String[] { "01 - Modelo", "02 - Série / sub", "03 - Num docto", "4 - Data emissão", "5 - Numero DI", "Linha preenchida IN86 - 4.4.2" };
-            foreach (var titulo in titulos)
-            {
-                sheet16.Cells[1, i++].Value = titulo;
-            }
+            x.WriteLine("|01 - Modelo|02 - Série / sub|03 - Num docto|4 - Data emissão|5 - Numero DI|Linha preenchida IN86 - 4.4.2|");
 
             i = 2;
+            string calcA, calcB, calcC, calcD, calcE, calcF;
+            int countTemp = 0;
+
             foreach (string y in C100)
             {
-                for (int j = 1; j < 7; j++)
-                {
-                    if (j == 1)
-                    {
-                        sheet16.Cells[i, 1].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"0\";\'Bloco C\'!C" + i + "=\"C120\");EXT.TEXTO(\'Bloco C\'!B" + i + ";3;2))";
-                    }
-                    if (j == 2)
-                    {
-                        sheet16.Cells[i, 2].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"0\";\'Bloco C\'!C" + i + "=\"C120\");SUBSTITUIR(EXT.TEXTO(\'Bloco C\'!B" + i + ";5;3);\" * \";\"\"))";
-                    }
-                    if (j == 3)
-                    {
-                        sheet16.Cells[i, 3].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"0\";\'Bloco C\'!C" + i + "=\"C120\");EXT.TEXTO(\'Bloco C\'!B" + i + ";8;9))";
-                    }
-                    if (j == 4)
-                    {
-                        sheet16.Cells[i, 4].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"0\";\'Bloco C\'!C" + i + "=\"C120\");EXT.TEXTO(\'Bloco C\'!B" + i + ";17;8))";
-                    }
-                    if (j == 5)
-                    {
-                        sheet16.Cells[i, 5].Value = "=SE(\'Bloco C\'!C" + i + "=\"C120\";\'Bloco C\'!E" + i + ")";
-                    }
-                    if (j == 6)
-                    {
-                        sheet16.Cells[i, 6].Value = "=CONCATENAR(A" + i + ";ESQUERDA(CONCATENAR(B" + i + ";REPT(\" \";5));5);C" + i + ";D" + i + ";REPT(0;10-NÚM.CARACT(SUBSTITUIR(E" + i + ";\",\";\"\")))&SUBSTITUIR(E" + i + ";\",\";))";
-                    }
-                }
-            }
-        }
+                calcA = "";
+                calcB = "";
+                calcC = "";
+                calcD = "";
+                calcE = "";
+                calcF = "";
 
-        private void GerarBloco441(ExcelPackage excelPackage, out int i, out string[] titulos)
-        {
-            // Aqui simplesmente adiciono a planilha inicial
-            var sheet15 = excelPackage.Workbook.Worksheets.Add("4.4.1");
-            sheet15.Name = "4.4.1";
-
-            // Títulos
-            i = 1;
-            titulos = new String[] { "01 - Modelo", "02 - Série / sub", "03 - Num docto", "4 - Data emissão", "5 - Numero do registro", "6 - Numero do despacho", "Linha preenchida IN86 - 4.4.1" };
-            foreach (var titulo in titulos)
-            {
-                sheet15.Cells[1, i++].Value = titulo;
-            }
-
-            i = 2;
-            foreach (string y in R1100)
-            {
-                for (int j = 1; j < 8; j++)
-                {
-                    if (j == 1)
-                    {
-                        sheet15.Cells[i, 1].Value = "=SE(\'Bloco 1 CE\'!D" + i + "=\"1105\";\'Bloco 1 CE\'!E" + i + ")";
-                    }
-                    if (j == 2)
-                    {
-                        sheet15.Cells[i, 2].Value = "=SE(\'Bloco 1 CE\'!D" + i + "=\"1105\";\'Bloco 1 CE\'!F" + i + ")";
-                    }
-                    if (j == 3)
-                    {
-                        sheet15.Cells[i, 3].Value = "=SE((\'Bloco 1 CE\'!D" + i + "=\"1105\");DIREITA(\'Bloco 1 CE\'!G" + i + ";6))";
-                    }
-                    if (j == 4)
-                    {
-                        sheet15.Cells[i, 4].Value = "=SE(\'Bloco 1 CE\'!D" + i + "=\"1105\";\'Bloco 1 CE\'!I" + i + ")";
-                    }
-                    if (j == 5)
-                    {
-                        sheet15.Cells[i, 5].Value = "=SE(\'Bloco 1 CE\'!D" + i + "=\"1105\";EXT.TEXTO(\'Bloco 1 CE\'!C" + i + ";1;12))";
-                    }
-                    if (j == 6)
-                    {
-                        sheet15.Cells[i, 6].Value = "=SE(\'Bloco 1 CE\'!D" + i + "=\"1105\";EXT.TEXTO(\'Bloco 1 CE\'!C" + i + ";13;12))";
-                    }
-                    if (j == 7)
-                    {
-                        sheet15.Cells[i, 7].Value = "=CONCATENAR(A" + i + ";ESQUERDA(CONCATENAR(B" + i + ";REPT(\" \";5));5);ESQUERDA(CONCATENAR(C" + i + ";REPT(\" \";9));9);D" + i + ";E" + i + ";REPT(0;12-NÚM.CARACT(SUBSTITUIR(F" + i + ";\",\";\"\")))&SUBSTITUIR(F" + i + ";\",\";))";
-                    }
-                }
-            }
-        }
-
-        private void GerarBloco1CE(ExcelPackage excelPackage, out int i, out int num, out string[] titulos)
-        {
-            // Aqui simplesmente adiciono a planilha inicial
-            var sheet14 = excelPackage.Workbook.Worksheets.Add("Bloco 1 CE");
-            sheet14.Name = "Bloco 1 CE";
-
-            // Títulos
-            i = 1;
-            titulos = new String[] { "Nr registro", "Nr despacho", "", "registro", "", "03 -NRO_DE", "", "", "06 - NRO_RE" };
-            foreach (var titulo in titulos)
-            {
-                sheet14.Cells[1, i++].Value = titulo;
-            }
-
-            // Valores
-            i = 2;
-            num = 0;
-            foreach (string y in R1100)
-            {
                 num = 0;
+
+                string[] value = y.Split('|');//.Where(x => x != "");
+
+                CarregaBlocoCSheet40(sheet, i, value);
+
+                if (sheet.Cells[i, 1].Value.ToString() == "C120" && calcTempC[countTemp].Substring(1, 1).ToString() == "0")
+                {
+                    calcA = calcTempC[countTemp].Substring(2, 2).ToString();
+                    calcB = calcTempC[countTemp].Substring(4, 3).ToString();
+                    calcC = calcTempC[countTemp].Substring(8, 9).ToString();
+                    calcD = calcTempC[countTemp].Substring(17, 8).ToString();
+                    calcE = sheet.Cells[i, 3].Value.ToString();
+                    countTemp++;
+
+                }
+                else
+                {
+                    calcA = "FALSO";
+                    calcB = "FALSO";
+                    calcC = "FALSO";
+                    calcD = "FALSO";
+                    calcE = "FALSO";
+                    countTemp++;
+                }
+
+                calcF = calcA + calcB.PadLeft(3, ' ') + ' ' + calcC + calcD + calcE.Replace(',', ' ');
+
+                x.WriteLine("|" + calcA + "|" + calcB + "|" + calcC + "|" + calcD + "|" + calcE + "|" + calcF + "|");
+                i++;
+            }
+        }
+
+        private void GerarBloco441(ExcelWorksheet sheet, out int i, int num, out string caminho, out string path)
+        {
+            // Inicio do bloco 4.4.1
+            StreamWriter x;
+
+            caminho = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            path = caminho + @"\Bloco4.4.1.txt";
+            x = File.CreateText(path);
+
+
+            // Títulos
+            x.WriteLine("|01 - Modelo|02 - Série / sub|03 - Num docto|4 - Data emissão|5 - Numero do registro|6 - Numero do despacho|Linha preenchida IN86 - 4.4.1|");
+
+            i = 2;
+            string calcA, calcB, calcC, calcD, calcE, calcF, calcG;
+
+            foreach (string y in R1100)
+            {
+                calcA = "";
+                calcB = "";
+                calcC = "";
+                calcD = "";
+                calcE = "";
+                calcF = "";
+                calcG = "";
+
+                num = 0;
+
                 string[] value = y.Split('|');//.Where(x => x != "");
                 for (int j = 2; j < value.Count(); j++)
                 {
                     if (!value[num].Equals(""))
                     {
-                        sheet14.Cells[i, j].Value = value[num];
+                        sheet.Cells[i, j].Value = value[num];
                     }
                     num++;
                 }
 
-                sheet14.Cells[i, 1].Value = "=SE(D" + i + "=\"1100\";I" + i + ";\"\")";
-                sheet14.Cells[i, 2].Value = "=SE(D" + i + "=\"1100\";F" + i + ";\"\")";
+                if (sheet.Cells[i, 3].Value.ToString() == "1105")
+                {
+                    calcA = sheet.Cells[i, 4].Value.ToString();
+                    calcB = sheet.Cells[i, 5].Value.ToString();
+                    calcC = sheet.Cells[i, 6].Value.ToString();
+                    calcD = sheet.Cells[i, 8].Value.ToString();
+                    calcE = sheet.Cells[i, 7].Value.ToString().Substring(1, 12);
+                    calcF = sheet.Cells[i, 7].Value.ToString().Substring(13, 12);
+                    calcG = calcA + calcB.PadRight(5, ' ') + calcC.PadLeft(9, ' ') + calcD + calcE + calcF.Replace(',', ' ');
+                }
+                else
+                {
+                    calcA = "FALSO";
+                    calcB = "FALSO";
+                    calcC = "FALSO";
+                    calcD = "FALSO";
+                    calcE = "FALSO";
+                    calcF = "FALSO";
+                    calcG = "FALSO";
+                }
 
+                x.WriteLine("|" + calcA + "|" + calcB + "|" + calcC + "|" + calcD + "|" + calcE + "|" + calcF + "|" + calcG + "|");
                 i++;
             }
         }
 
-        private void GerarBloco4106(ExcelPackage excelPackage, out int i, out string[] titulos)
+        private void GerarBloco1CE(ExcelWorksheet sheet, out int i, out int num, out string caminho, out string path)
         {
-            // Aqui simplesmente adiciono a planilha inicial
-            var sheet13 = excelPackage.Workbook.Worksheets.Add("4.10.6");
-            sheet13.Name = "4.10.6";
+            // Inicio do bloco 1 CE
+            StreamWriter x;
+
+            caminho = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            path = caminho + @"\Bloco1CE.txt";
+            x = File.CreateText(path);
 
             // Títulos
-            i = 1;
-            titulos = new String[] { "1 - Série", "2 - Nr docto", "3 - DT Emissão", "4 - Participante", "5 - Nr item", "6 - CST PIS",
-                    "7 - Alíquota", "8 - Base Calc", "09 - Vlr Crédito PIS - Receita Exportação", "10 - Vlr Crédito PIS - Receita Mercado interno",
-                    "11 - Vlr Crédito PIS - Receita não tributada", "12 - Vlr PIS", "13 - CST COFINS", "14 - Alíq Cofins", "15 - BC Cofins",
-                    "16 - Vlr Créd Cofins Receita Exportação", "17 - Vlr Créd Cofins - Receita Mercado interno", "18 - Vlr Créd Cofins Receita não tributada",
-                    "19 - Valor Cofins", "20 - Dt Apropriação", "Linha preenchida IN25/10 - 4.10.6" };
-            foreach (var titulo in titulos)
-            {
-                sheet13.Cells[1, i++].Value = titulo;
-            }
+            x.WriteLine("|Nr registro|Nr despacho|||registro|||03 -NRO_DE|||06 - NRO_RE|");
 
+            // Valores
             i = 2;
-            foreach (string y in A100)
+            num = 0;
+            sheet.Cells.Clear();
+            string calcA, calcB, calcC;
+            int countTemp = 0;
+
+            foreach (string y in R1100)
             {
-                for (int j = 1; j < 22; j++)
+                calcA = "";
+                calcB = "";
+                calcC = "";
+                num = 0;
+
+                string[] value = y.Split('|');//.Where(x => x != "");
+                for (int j = 2; j < value.Count(); j++)
                 {
-                    if (j == 1)
+                    if (!value[num].Equals(""))
                     {
-                        sheet13.Cells[i, 1].Value = "=SE((\'BLOCO A\'!C" + i + "=\"A170\");SUBSTITUIR(EXT.TEXTO(\'BLOCO A\'!B" + i + ";3;3);\" * \";\"\"))";
+                        sheet.Cells[i, j].Value = value[num];
                     }
-                    if (j == 2)
+                    num++;
+                }
+
+                if (sheet.Cells[i, 3].Value.ToString() != "0150")
+                {
+                    if (sheet.Cells[i, 3].Value.ToString() == "1100")
                     {
-                        sheet13.Cells[i, 2].Value = "=SE((\'BLOCO A\'!C" + i + "=\"A170\");EXT.TEXTO(\'BLOCO A\'!B" + i + ";6;9))";
+                        calcA = sheet.Cells[i, 6].Value.ToString();
+                        calcB = sheet.Cells[i, 3].Value.ToString();
                     }
-                    if (j == 3)
+                    else
                     {
-                        sheet13.Cells[i, 3].Value = "=SE((\'BLOCO A \'!C" + i + "=\"A170\");EXT.TEXTO(\'BLOCO A\'!B" + i + ";15;8))";
+                        calcA = "";
+                        calcB = "";
                     }
-                    if (j == 4)
+
+                    if (calcA != "" & calcB != "")
                     {
-                        sheet13.Cells[i, 4].Value = "=SE((\'BLOCO A \'!C" + i + "=\"A170\");EXT.TEXTO(\'BLOCO A \'!B" + i + ";23;15))";
+                        calcC = calcA + calcB;
+                        sheet.Cells[i, 13].Value = calcC.ToString();
+                        countTemp = i;
                     }
-                    if (j == 5)
+                    else
                     {
-                        sheet13.Cells[i, 5].Value = "=SE(\'BLOCO A \'!C" + i + "=\"A170\";TEXTO(\'BLOCO A \'!D" + i + ";\"000\"))";
+                        calcC = sheet.Cells[countTemp, 13].Value.ToString();
                     }
-                    if (j == 6)
-                    {
-                        sheet13.Cells[i, 6].Value = "=SE(\'BLOCO A \'!C" + i + "=\"A170\";\'BLOCO A \'!K" + i + ")";
-                    }
-                    if (j == 7)
-                    {
-                        sheet13.Cells[i, 7].Value = "=SE(\'BLOCO A \'!C" + i + "=\"A170\";TEXTO(\'BLOCO A \'!M" + i + ";\"0,0000\"))";
-                    }
-                    if (j == 8)
-                    {
-                        sheet13.Cells[i, 8].Value = "=SE(\'BLOCO A \'!C" + i + "=\"A170\";TEXTO(\'BLOCO A \'!L" + i + ";\"0,000\"))";
-                    }
-                    if (j == 9)
-                    {
-                        sheet13.Cells[i, 9].Value = "=SE(\'BLOCO A \'!C" + i + "=\"A170\";TEXTO(L" + i + "*Faturamento.C$7;\"0,00\"))";
-                    }
-                    if (j == 10)
-                    {
-                        sheet13.Cells[i, 10].Value = "=SE(\'BLOCO A \'!C" + i + "=\"A170\";TEXTO(L" + i + "*Faturamento.C$3;\"0,00\"))";
-                    }
-                    if (j == 11)
-                    {
-                        sheet13.Cells[i, 11].Value = "=SE(\'BLOCO A \'!C" + i + "=\"A170\";TEXTO(L" + i + "*Faturamento.C$5;\"0,00\"))";
-                    }
-                    if (j == 12)
-                    {
-                        sheet13.Cells[i, 12].Value = "=SE(\'BLOCO A \'!C" + i + "=\"A170\";TEXTO(\'BLOCO A \'!N" + i + ";\"0,00\"))";
-                    }
-                    if (j == 13)
-                    {
-                        sheet13.Cells[i, 13].Value = "=F" + i;
-                    }
-                    if (j == 14)
-                    {
-                        sheet13.Cells[i, 14].Value = "=SE(\'BLOCO A \'!C" + i + "=\"A170\";TEXTO(\'BLOCO A \'!Q" + i + ";\"0,0000\"))";
-                    }
-                    if (j == 15)
-                    {
-                        sheet13.Cells[i, 15].Value = "=H" + i;
-                    }
-                    if (j == 16)
-                    {
-                        sheet13.Cells[i, 16].Value = "=SE(\'BLOCO A \'!C" + i + "=\"A170\";TEXTO(S" + i + "*Faturamento.C$7;\"0,00\"))";
-                    }
-                    if (j == 17)
-                    {
-                        sheet13.Cells[i, 17].Value = "=SE(\'BLOCO A \'!C" + i + "=\"A170\";TEXTO(S" + i + "*Faturamento.C$3;\"0,00\"))";
-                    }
-                    if (j == 18)
-                    {
-                        sheet13.Cells[i, 18].Value = "=SE(\'BLOCO A \'!C" + i + "=\"A170\";TEXTO(S" + i + "*Faturamento.C$5;\"0,00\"))";
-                    }
-                    if (j == 19)
-                    {
-                        sheet13.Cells[i, 19].Value = "=SE(\'BLOCO A \'!C" + i + "=\"A170\";TEXTO(\'BLOCO A \'!R" + i + ";\"0,00\"))";
-                    }
-                    if (j == 20)
-                    {
-                        sheet13.Cells[i, 20].Value = "=SE((\'BLOCO A \'!C" + i + "=\"A170\");EXT.TEXTO(\'BLOCO A \'!B" + i + ";15;8))";
-                    }
-                    if (j == 21)
-                    {
-                        sheet13.Cells[i, 21].Value = "=CONCATENAR(ESQUERDA(CONCATENAR(A" + i + ";REPT(\" \"; 5));5);ESQUERDA(CONCATENAR(B" + i + ";REPT(\" \"; 9));9);C" + i + ";ESQUERDA(CONCATENAR(D" + i + ";REPT(\" \"; 14));14);E" + i + ";ESQUERDA(CONCATENAR(F" + i + ";REPT(\" \"; 2));2);" +
-                            "REPT(0;8-NÚM.CARACT(SUBSTITUIR(G" + i + ";\",\";\"\")))&SUBSTITUIR(G" + i + ";\",\";);REPT(0;17-NÚM.CARACT(SUBSTITUIR(H" + i + ";\",\";\"\")))&SUBSTITUIR(H" + i + ";\",\";);REPT(0;17-NÚM.CARACT(SUBSTITUIR(I" + i + ";\",\";\"\")))&SUBSTITUIR(I" + i + ";\",\";);" +
-                            "REPT(0;17-NÚM.CARACT(SUBSTITUIR(J" + i + ";\",\";\"\")))&SUBSTITUIR(J" + i + ";\",\";);REPT(0;17-NÚM.CARACT(SUBSTITUIR(K" + i + ";\",\";\"\")))&SUBSTITUIR(K" + i + ";\",\";);REPT(0;17-NÚM.CARACT(SUBSTITUIR(L" + i + ";\",\";\"\")))&SUBSTITUIR(L" + i + ";\",\";);" +
-                            "ESQUERDA(CONCATENAR(M" + i + ";REPT(\" \"; 2));2);REPT(0;8-NÚM.CARACT(SUBSTITUIR(N" + i + ";\",\";\"\")))&SUBSTITUIR(N" + i + ";\",\";);REPT(0;17-NÚM.CARACT(SUBSTITUIR(O" + i + ";\",\";\"\")))&SUBSTITUIR(O" + i + ";\",\";);REPT(0;17-NÚM.CARACT(SUBSTITUIR(P" + i + ";\",\";\"\")))" +
-                            "&SUBSTITUIR(P" + i + ";\",\";);REPT(0;17-NÚM.CARACT(SUBSTITUIR(Q" + i + ";\",\";\"\")))&SUBSTITUIR(Q" + i + ";\",\";);REPT(0;17-NÚM.CARACT(SUBSTITUIR(R" + i + ";\",\";\"\")))&SUBSTITUIR(R" + i + ";\",\";);REPT(0;17-NÚM.CARACT(SUBSTITUIR(S" + i + ";\",\";\"\")))" +
-                            "&SUBSTITUIR(S" + i + ";\",\";);T" + i + ")";
-                    }
+
+                    x.WriteLine("|" + calcA + "|" + calcB + "|" + calcC + "|" + y);
                 }
                 i++;
             }
         }
 
-        private void GerarBloco4105(ExcelPackage excelPackage, out int i, out string[] titulos)
+        private void GerarBloco4106(ExcelWorksheet sheet, out int i, out string caminho, out string path, float calcIndRBNCT, float calcIndRBNCNT, float calcIndRBNCE)
         {
-            // Aqui simplesmente adiciono a planilha inicial
-            var sheet12 = excelPackage.Workbook.Worksheets.Add("4.10.5");
-            sheet12.Name = "4.10.5";
+            // Inicio do bloco 4.10.6
+            StreamWriter x;
+
+            caminho = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            path = caminho + @"\Bloco4.10.6.txt";
+            x = File.CreateText(path);
 
             // Títulos
-            i = 1;
-            titulos = new String[] { "1 - Modelo docto", "2 - Série", "3 - Num do dcto", "4 - Dt Emissão", "5 - Cod Participante" ,
-                "6 - Nr item", "7 - CST PIS", "8 - Alíquota", "9 - Base Calc", "10 - Vlr Crédito PIS - Receita Exportação", "11 - Vlr Crédito PIS - Receita Mercado interno",
-                "12 - Vlr Crédito PIS - Receita não tributada", "13 - Vlr PIS", "14 - CST COFINS", "15 - Alíq Cofins", "16 - BC Cofins", "17 - Vlr Créd Cofins Receita Exportação",
-                "18 - Vlr Créd Cofins - Receita Mercado interno", "19 - Vlr Créd Cofins Receita não tributada", "20 - Valor Cofins", "21 - Dt Apropriação", "Linha preenchida IN25/10 - 4.10.5"};
-
-            foreach (var titulo in titulos)
-            {
-                sheet12.Cells[1, i++].Value = titulo;
-            }
+            x.WriteLine("|1 - Série|2 - Nr docto|3 - DT Emissão|4 - Participante|5 - Nr item|6 - CST PIS|" +
+                "7 - Alíquota|8 - Base Calc|09 - Vlr Crédito PIS - Receita Exportação|10 - Vlr Crédito PIS - Receita Mercado interno|" +
+                "11 - Vlr Crédito PIS - Receita não tributada|12 - Vlr PIS|13 - CST COFINS|14 - Alíq Cofins|15 - BC Cofins|" +
+                "16 - Vlr Créd Cofins Receita Exportação|17 - Vlr Créd Cofins - Receita Mercado interno|18 - Vlr Créd Cofins Receita não tributada|" +
+                "19 - Valor Cofins|20 - Dt Apropriação|Linha preenchida IN25/10 - 4.10.6|");
 
             i = 2;
+            string calcA, calcB, calcC, calcD, calcE, calcF, calcG, calcH, calcI, calcJ, calcK, calcL, calcM, calcN, calcO, calcP, calcQ, calcR, calcS, calcT, calcU;
+            int countTemp = 0, countSave = 0, usualCount = 0;
+            bool savedCount = false;
+
+            foreach (string y in A100)
+            {
+                calcA = "";
+                calcB = "";
+                calcC = "";
+                calcD = "";
+                calcE = "";
+                calcF = "";
+                calcG = "";
+                calcH = "";
+                calcI = "";
+                calcJ = "";
+                calcK = "";
+                calcL = "";
+                calcM = "";
+                calcN = "";
+                calcO = "";
+                calcP = "";
+                calcQ = "";
+                calcR = "";
+                calcS = "";
+                calcT = "";
+                calcU = "";
+
+                string[] value = y.Split('|');//.Where(x => x != "");
+                CarregaBlocoA(sheet, i, value);
+
+                if (sheet.Cells[i, 1].Value.ToString() == "A170")
+                {
+                    calcA = calcTempB[countTemp].ToString().Substring(3, 3).Replace(',', ' ');
+                    calcB = calcTempB[countTemp].Substring(6, 9).ToString();
+                    calcC = calcTempB[countTemp].Substring(15, 8).ToString();
+                    calcD = calcTempB[countTemp].Substring(19, 7).ToString();
+                    calcE = sheet.Cells[i, 2].Value.ToString().PadLeft(3, '0');
+                    calcF = sheet.Cells[i, 9].Value.ToString();
+                    calcG = string.Format(@"{0:0,0000}", sheet.Cells[i, 11].Value.ToString());
+                    calcH = string.Format(@"{0:0,000}", sheet.Cells[i, 10].Value.ToString());
+                    calcI = string.Format(@"{0:f}", float.Parse(sheet.Cells[i, 10].Value.ToString()) * calcIndRBNCE);
+                    calcJ = string.Format(@"{0:f}", float.Parse(sheet.Cells[i, 10].Value.ToString()) * calcIndRBNCT);
+                    calcK = string.Format(@"{0:f}", float.Parse(sheet.Cells[i, 10].Value.ToString()) * calcIndRBNCNT);
+                    calcL = string.Format(@"{0:f}", sheet.Cells[i, 12].Value.ToString());
+                    calcN = string.Format(@"{0:0,0000}", sheet.Cells[i, 15].Value.ToString());
+                    calcS = string.Format(@"{0:f}", sheet.Cells[i, 16].Value.ToString());
+                    calcP = string.Format(@"{0:f}", float.Parse(calcS) * calcIndRBNCE);
+                    calcQ = string.Format(@"{0:f}", float.Parse(calcS) * calcIndRBNCT);
+                    calcR = string.Format(@"{0:f}", float.Parse(calcS) * calcIndRBNCNT);
+                    calcT = calcTempB[countTemp].Substring(15, 8);
+                    savedCount = false;
+                }
+                else
+                {
+                    calcA = "FALSO";
+                    calcB = "FALSO";
+                    calcC = "FALSO";
+                    calcD = "FALSO";
+                    calcE = "FALSO";
+                    calcF = "FALSO";
+                    calcG = "FALSO";
+                    calcH = "FALSO";
+                    calcI = "FALSO";
+                    calcJ = "FALSO";
+                    calcK = "FALSO";
+                    calcL = "FALSO";
+                    calcN = "FALSO";
+                    calcP = "FALSO";
+                    calcQ = "FALSO";
+                    calcR = "FALSO";
+                    calcS = "FALSO";
+                    calcT = "FALSO";
+                }
+                countTemp = usualCount + 1;
+                usualCount = countTemp;
+
+                if (countTemp != calcTempB.Count())
+                {
+                    foreach (var ind in calcTempB)
+                    {//estorou o numero de casas do array
+                        if (calcTempB[countTemp].ToString() == "")
+                        {
+                            countTemp = countTemp - 1;
+                        }
+                        else
+                        {
+                            if (!savedCount)
+                            {
+                                countSave = countTemp;
+                                savedCount = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                calcM = calcF;
+                calcO = calcH;
+
+                calcU = calcA.PadLeft(5, ' ') + calcB.PadLeft(9, ' ') + calcC + calcD.PadLeft(14, ' ') + calcE + calcF.PadLeft(2, ' ') + calcG.Replace(',', ' ') + calcH.Replace(',', ' ') +
+                    calcI.Replace(',', ' ') + calcJ.Replace(',', ' ') + calcK.Replace(',', ' ') + calcL.Replace(',', ' ') + calcM.PadLeft(2, ' ') + calcN.Replace(',', ' ') + calcO.Replace(',', ' ') +
+                    calcP.Replace(',', ' ') + calcQ.Replace(',', ' ') + calcR.Replace(',', ' ') + calcS.Replace(',', ' ') + calcT;
+
+
+
+                x.WriteLine("|" + calcA + "|" + calcB + "|" + calcC + "|" + calcD + "|" + calcE + "|" + calcF + "|" + calcG + "|" + calcH + "|" + calcI + "|" + calcJ + "|" + calcK + "|" + calcL + "|" + calcM + "|" + calcN + "|" + calcO + "|" + calcP + "|" + calcQ + "|" + calcR + "|" + calcS + "|" + calcT + "|" + calcU + "|");
+                i++;
+            }
+        }
+
+        private void GerarBloco4105(ExcelWorksheet sheet, out int i, out string caminho, out string path, float calcIndRBNCT, float calcIndRBNCNT, float calcIndRBNCE, float calcPercIndRBNCT)
+        {
+            // Inicio bloco 4.10.5
+            StreamWriter x;
+
+            caminho = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            path = caminho + @"\Bloco4.10.5.txt";
+            x = File.CreateText(path);
+
+            // Títulos
+            x.WriteLine("|1 - Modelo docto|2 - Série|3 - Num do dcto|4 - Dt Emissão|5 - Cod Participante|" +
+            "6 - Nr item|7 - CST PIS|8 - Alíquota|9 - Base Calc|10 - Vlr Crédito PIS - Receita Exportação|11 - Vlr Crédito PIS - Receita Mercado interno|" +
+            "12 - Vlr Crédito PIS - Receita não tributada|13 - Vlr PIS|14 - CST COFINS|15 - Alíq Cofins|16 - BC Cofins|17 - Vlr Créd Cofins Receita Exportação|" +
+            "18 - Vlr Créd Cofins - Receita Mercado interno|19 - Vlr Créd Cofins Receita não tributada|20 - Valor Cofins|21 - Dt Apropriação|Linha preenchida IN25/10 - 4.10.5|");
+
+            i = 2;
+            string calcA, calcB, calcC, calcD, calcE, calcF, calcG, calcH, calcI, calcJ, calcK, calcL, calcM, calcN, calcO, calcP, calcQ, calcR, calcS, calcT, calcU, calcV;
+            int countTemp;
+
             foreach (string y in C100)
             {
-                for (int j = 1; j < 23; j++)
+
+                calcA = "";
+                calcB = "";
+                calcC = "";
+                calcD = "";
+                calcE = "";
+                calcF = "";
+                calcG = "";
+                calcH = "";
+                calcI = "";
+                calcJ = "";
+                calcL = "";
+                calcK = "";
+                calcM = "";
+                calcN = "";
+                calcO = "";
+                calcP = "";
+                calcQ = "";
+                calcR = "";
+                calcS = "";
+                calcT = "";
+                calcU = "";
+                calcV = "";
+
+                string[] value = y.Split('|');//.Where(x => x != "");
+
+                CarregaBlocoCSheet40(sheet, i, value);
+
+                countTemp = 0;
+                if (value.Length >= 30)
+                {
+                    if (calcTempC[countTemp].ToString().Substring(0, 1) == "1" && sheet.Cells[i, 1].Value.ToString() == "C170")
+                    {
+                        calcA = calcTempC[countTemp].Substring(2, 2);
+                        calcB = calcTempC[countTemp].Substring(14, 3);
+                        calcC = calcTempC[countTemp].Substring(5, 9);
+                        calcD = calcTempC[countTemp].Substring(14, 8);
+                        calcE = calcTempC[countTemp].Substring(24, 8);
+                        calcF = sheet.Cells[i, 2].Value.ToString().PadLeft(3, '0');
+
+                        if (sheet.Cells[i, 25].Value.ToString() == "")
+                        {
+                            calcG = "";
+                        }
+                        else
+                        {
+                            calcG = sheet.Cells[i, 25].Value.ToString();
+                        }
+
+                        calcH = string.Format(@"{0:0,0000}", (sheet.Cells[i, 27].Value ?? "0,0000").ToString());
+                        calcI = string.Format(@"{0:0,0000}", (sheet.Cells[i, 26].Value ?? "0,0000").ToString());
+                        calcM = string.Format(@"{0:f}", (sheet.Cells[i, 30].Value ?? "0,00").ToString());
+                        calcO = string.Format(@"{0:f}", sheet.Cells[i, 33].Value.ToString());
+                        calcT = string.Format(@"{0:f}", (sheet.Cells[i, 36].Value.ToString() == "" ? "0,00" : sheet.Cells[i, 36].Value).ToString());
+                        calcU = calcTempC[countTemp].Substring(25, 8);
+
+                    }
+                    else
+                    {
+                        calcA = "FALSO";
+                        calcB = "FALSO";
+                        calcC = "FALSO";
+                        calcD = "FALSO";
+                        calcE = "FALSO";
+                        calcF = "FALSO";
+                        calcG = "FALSO";
+                        calcH = "FALSO";
+                        calcI = "FALSO";
+                        calcM = "FALSO";
+                        calcO = "FALSO";
+                        calcT = "FALSO";
+                        calcU = "FALSO";
+                    }
+
+                    calcN = calcG;
+                    calcP = calcI;
+
+                    if (calcG == "50")
+                    {
+                        calcJ = "0,00";
+                        calcL = "0,00";
+                    }
+                    else
+                    {
+                        if (calcTempC[countTemp].ToString().Substring(0, 1) == "1" && sheet.Cells[i, 1].Value.ToString() == "C170")
+                        {
+                            if (calcM != "")
+                            {
+                                calcJ = string.Format(@"{0:f}", float.Parse(calcM) * calcIndRBNCE);
+                                calcL = string.Format(@"{0:f}", float.Parse(calcM) * calcIndRBNCNT);
+                            }
+                            else
+                            {
+                                calcJ = "0,00";
+                                calcL = "0,00";
+                            }
+                        }
+                        else
+                        {
+                            calcJ = "FALSO";
+                            calcL = "FALSO";
+                        }
+                    }
+
+                    if (calcG == "50")
+                    {
+                        calcK = calcM;
+                    }
+                    else
+                    {
+                        if (calcTempC[countTemp].ToString().Substring(0, 1) == "1" && sheet.Cells[i, 1].Value.ToString() == "C170")
+                        {
+                            if (calcM != "")
+                            {
+                                calcK = string.Format(@"{0:f}", float.Parse(calcM) * calcPercIndRBNCT);
+                            }
+                            else
+                            {
+                                calcK = "0,00";
+                            }
+                        }
+                        else
+                        {
+                            calcK = "FALSO";
+                        }
+                    }
+
+                    if (calcN == "50")
+                    {
+                        calcQ = "0,00";
+                        calcS = "0,00";
+                    }
+                    else
+                    {
+                        if (calcTempC[countTemp].ToString().Substring(0, 1) == "1" && sheet.Cells[i, 1].Value.ToString() == "C170")
+                        {
+                            calcQ = string.Format(@"{0:f}", float.Parse(calcT) * calcIndRBNCE);
+                            calcS = string.Format(@"{0:f}", float.Parse(calcT) * calcIndRBNCNT);
+                        }
+                        else
+                        {
+                            calcQ = "FALSO";
+                            calcS = "FALSO";
+                        }
+                    }
+
+                    if (calcN == "50")
+                    {
+                        calcR = calcT;
+                    }
+                    else
+                    {
+                        if (calcTempC[countTemp].ToString().Substring(0, 1) == "1" && sheet.Cells[i, 1].Value.ToString() == "C170")
+                        {
+                            calcR = string.Format(@"{0:f}", float.Parse(calcT) * calcIndRBNCT);
+                        }
+                        else
+                        {
+                            calcR = "FALSO";
+                        }
+                    }
+
+                    if (sheet.Cells[i, 1].Value.ToString() == "C170")
+                    {
+                        countTemp++;
+                    }
+
+                    calcV = calcA + calcB.PadLeft(5, ' ') + calcC + calcD + calcE.PadLeft(14, ' ') + calcF + calcG.PadLeft(2, ' ') + calcH.Replace(',', ' ') + calcI.Replace(',', ' ') +
+                        calcJ.Replace(',', ' ') + calcK.Replace(',', ' ') + calcL.Replace(',', ' ') + calcM.Replace(',', ' ') + calcN.Replace(',', ' ') + calcO.Replace(',', ' ') + calcP.Replace(',', ' ') +
+                        calcQ.Replace(',', ' ') + calcR.Replace(',', ' ') + calcS.Replace(',', ' ') + calcT.Replace(',', ' ') + calcU;
+
+                    x.WriteLine("|" + calcA + "|" + calcB + "|" + calcC + "|" + calcD + "|" + calcE + "|" + calcF + "|" + calcG + "|" + calcH + "|" + calcI + "|" + calcJ + "|" + calcK + "|" + calcL + "|" + calcM + "|" + calcN + "|" + calcO + "|" + calcP + "|" + calcQ + "|" + calcR + "|" + calcS + "|" + calcT + "|" + calcU + "|" + calcV + "|");
+
+                    i++;
+                }
+            }
+        }
+
+        private void GerarBLoco4104(ExcelWorksheet sheet, out int i, out string caminho, out string path, float calcIndRBNCT, float calcIndRBNCNT, float calcIndRBNCE)
+        {
+            // Inicio do bloco 4.10.4
+            StreamWriter x;
+
+            caminho = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            path = caminho + @"\Bloco4.10.4.txt";
+            x = File.CreateText(path);
+
+            // Títulos
+            x.WriteLine("|1 - Modelo docto|2 - Série|3 - Num do dcto|4 - Dt Emissão|5 - Nr item|" +
+            "6 - CST PIS|7 - Alíquota|8 - Base Calc|9 - Vlr Crédito PIS - Receita Exportação|10 - Vlr Crédito PIS - Receita Mercado interno|11 - Vlr Crédito PIS - Receita não tributada|" +
+            "12 - Vlr PIS|13 - CST COFINS|14 - Alíq Cofins|15 - BC Cofins|16 - Vlr Créd Cofins Receita Exportação|17 - Vlr Créd Cofins - Receita Mercado interno|" +
+            "18 - Vlr Créd Cofins Receita não tributada|19 - Valor Cofins|20 - Dt Apropriação|Linha preenchida IN25/10 - 4.10.4|");
+
+            i = 2;
+            string calcA, calcB, calcC, calcD, calcE, calcF, calcG, calcH, calcI, calcJ, calcK, calcL, calcM, calcN, calcO, calcP, calcQ, calcR, calcS, calcT, calcU;
+            int countTemp;
+
+            foreach (string y in C100)
+            {
+
+                calcA = "";
+                calcB = "";
+                calcC = "";
+                calcD = "";
+                calcE = "";
+                calcF = "";
+                calcG = "";
+                calcH = "";
+                calcI = "";
+                calcJ = "";
+                calcL = "";
+                calcK = "";
+                calcM = "";
+                calcN = "";
+                calcO = "";
+                calcP = "";
+                calcQ = "";
+                calcR = "";
+                calcS = "";
+                calcT = "";
+                calcU = "";
+
+                string[] value = y.Split('|');//.Where(x => x != "");
+
+                CarregaBlocoCSheet40(sheet, i, value);
+
+                countTemp = 0;
+                if (value.Length >= 30)
+                {
+                    if (calcTempC[countTemp].ToString().Substring(0, 1) == "1" && sheet.Cells[i, 1].Value.ToString() == "C170")
+                    {
+                        calcA = calcTempC[countTemp].Substring(2, 2);
+                        calcB = calcTempC[countTemp].Substring(14, 3);
+                        calcC = calcTempC[countTemp].Substring(5, 9);
+                        calcD = calcTempC[countTemp].Substring(14, 8);
+                        calcE = string.IsNullOrEmpty(sheet.Cells[i, 2].Value.ToString()) ? sheet.Cells[i, 2].Value.ToString().PadLeft(3, '0') : "000";
+                        calcF = sheet.Cells[i, 25].Value.ToString();
+                        calcG = string.Format(@"{0:0,0000}", (sheet.Cells[i, 27].Value ?? "0,0000").ToString());
+                        calcH = string.Format(@"{0:0,0000}", (sheet.Cells[i, 26].Value ?? "0,0000").ToString());
+                    }
+                    else
+                    {
+                        calcA = "FALSO";
+                        calcB = "FALSO";
+                        calcC = "FALSO";
+                        calcD = "FALSO";
+                        calcE = "FALSO";
+                        calcF = "FALSO";
+                        calcG = "FALSO";
+                        calcH = "FALSO";
+                    }
+
+                    calcM = calcF;
+                    calcO = calcH;
+
+                    if (calcTempC[countTemp].ToString().Substring(0, 1) == "0" && sheet.Cells[i, 1].Value.ToString() == "C170"
+                        && calcTempC[countTemp].ToString().Substring(1, 1) == "0")
+                    {
+                        calcL = string.Format(@"{0,f}", sheet.Cells[i, 30].Value.ToString());
+                        calcN = string.Format(@"{0,0,0000}", sheet.Cells[i, 33].Value.ToString());
+                        calcS = string.Format(@"{0,f}", sheet.Cells[i, 36].Value.ToString());
+                        calcT = calcTempC[countTemp].Substring(25, 8);
+
+                    }
+                    else
+                    {
+                        calcL = "FALSO";
+                        calcN = "FALSO";
+                        calcS = "FALSO";
+                        calcT = "FALSO";
+                    }
+
+                    if (calcF == "50")
+                    {
+                        calcI = "0,00";
+                        calcK = "0,00";
+                    }
+                    else
+                    {
+                        if (calcTempC[countTemp].ToString().Substring(0, 1) == "0" && sheet.Cells[i, 1].Value.ToString() == "C170"
+                            && calcTempC[countTemp].ToString().Substring(1, 1) == "0")
+                        {
+
+                            calcI = string.Format(@"{0:f}", float.Parse(calcL) * calcIndRBNCE);
+                        }
+                        else
+                        {
+                            calcI = "FALSO";
+                        }
+
+                        if (calcF == "50")
+                        {
+                            calcK = "0,00";
+                        }
+                        else
+                        {
+                            if (calcTempC[countTemp].ToString().Substring(0, 1) == "0" && sheet.Cells[i, 1].Value.ToString() == "C170"
+                            && calcTempC[countTemp].ToString().Substring(1, 1) == "0")
+                            {
+                                calcK = string.Format(@"{0:f}", float.Parse(calcL) * calcIndRBNCNT);
+                            }
+                            else
+                            {
+                                calcK = "FALSO";
+                            }
+                        }
+
+                    }
+
+                    if (calcF == "50")
+                    {
+                        calcJ = calcL;
+                    }
+                    else
+                    {
+                        if (calcTempC[countTemp].ToString().Substring(0, 1) == "0" && sheet.Cells[i, 1].Value.ToString() == "C170"
+                            && calcTempC[countTemp].ToString().Substring(1, 1) == "0")
+                        {
+                            calcJ = string.Format(@"{0:f}", float.Parse(calcL) * calcIndRBNCT);
+                        }
+                        else
+                        {
+                            calcJ = "FALSO";
+                        }
+                    }
+
+                    if (calcM == "50")
+                    {
+                        calcP = "0,00";
+                        calcR = "0,00";
+                    }
+                    else
+                    {
+                        if (calcTempC[countTemp].ToString().Substring(0, 1) == "0" && sheet.Cells[i, 1].Value.ToString() == "C170"
+                            && calcTempC[countTemp].ToString().Substring(1, 1) == "0")
+                        {
+                            calcP = string.Format(@"{0:f}", float.Parse(calcS) * calcIndRBNCE);
+                            calcR = string.Format(@"{0:f}", float.Parse(calcS) * calcIndRBNCNT);
+                        }
+                        else
+                        {
+                            calcP = "FALSO";
+                            calcR = "FALSO";
+                        }
+                    }
+
+                    if (calcM == "50")
+                    {
+                        calcQ = calcS;
+                    }
+                    else
+                    {
+                        if (calcTempC[countTemp].ToString().Substring(0, 1) == "0" && sheet.Cells[i, 1].Value.ToString() == "C170"
+                            && calcTempC[countTemp].ToString().Substring(1, 1) == "0")
+                        {
+                            calcQ = string.Format(@"{0:f}", float.Parse(calcS) * calcIndRBNCT);
+                        }
+                        else
+                        {
+                            calcQ = "FALSO";
+                        }
+                    }
+                }
+
+                if (sheet.Cells[i, 1].Value.ToString() == "C170")
+                {
+                    countTemp++;
+                }
+
+                calcU = calcA + calcB.PadLeft(5, ' ') + calcC + calcD + calcE + calcF.PadLeft(2, ' ') + calcG.Replace(',', ' ') + calcH.Replace(',', ' ') + calcI.Replace(',', ' ') +
+                    calcJ.Replace(',', ' ') + calcK.Replace(',', ' ') + calcL.Replace(',', ' ') + calcM.PadLeft(2, ' ') + calcN.Replace(',', ' ') + calcO.Replace(',', ' ') + calcP.Replace(',', ' ') +
+                    calcQ.Replace(',', ' ') + calcR.Replace(',', ' ') + calcS.Replace(',', ' ') + calcT;
+
+                x.WriteLine("|" + calcA + "|" + calcB + "|" + calcC + "|" + calcD + "|" + calcE + "|" + calcF + "|" + calcG + "|" + calcH + "|" + calcI + "|" + calcJ + "|" + calcK + "|" + calcL + "|" + calcM + "|" + calcN + "|" + calcO + "|" + calcP + "|" + calcQ + "|" + calcR + "|" + calcS + "|" + calcT + "|" + calcU + "|");
+
+                i++;
+            }
+        }
+
+        private static void CalculoFaturamento(out float calcFatValRBNCT, out float calcFatValRBNCNT, out float calcFatValRBNCE, out float calcIndRBNCT, out float calcIndRBNCNT, out float calcIndRBNCE, out float calcFatValTotal, out float calcFacIndTotal, out float calcPercIndRBNCT, out float calcPercIndRBNCNT, out float calcPercIndRBNCE)
+        {
+            calcFatValRBNCT = float.Parse(Interaction.InputBox("Receita Bruta Não Cumulativa Tributada Mercado Interno", "Preencher com informações do Faturamento", "Valores R$"));
+            calcFatValRBNCNT = float.Parse(Interaction.InputBox("Receita Bruta Não Cumulativa Não Tributada Mercado Interno", "Preencher com informações do Faturamento", "Valores R$"));
+            calcFatValRBNCE = float.Parse(Interaction.InputBox("Receita Bruta Não Cumulativa Não Exportação", "Preencher com informações do Faturamento", "Valores R$"));
+
+            calcFatValTotal = calcFatValRBNCE + calcFatValRBNCNT + calcFatValRBNCT;
+
+            calcIndRBNCT = calcFatValRBNCT / calcFatValTotal;
+
+            calcIndRBNCNT = calcFatValRBNCNT / calcFatValTotal;
+
+            calcIndRBNCE = calcFatValRBNCE / calcFatValTotal;
+
+            calcFacIndTotal = calcIndRBNCE + calcIndRBNCNT + calcIndRBNCT;
+
+            calcPercIndRBNCT = calcIndRBNCT * 100;
+            calcPercIndRBNCNT = calcIndRBNCNT * 100;
+            calcPercIndRBNCE = calcIndRBNCE * 100;
+        }
+
+        private void GerarBloco4101(ExcelWorksheet sheet, out int i, out string caminho, out string path)
+        {
+            // Inicio do bloco 4.10.1
+            StreamWriter x;
+
+            caminho = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            path = caminho + @"\Bloco4.10.1.txt";
+            x = File.CreateText(path);
+
+            x.WriteLine("|1 - Modelo docto|2 - Série|3 - Num do dcto|4 - Dt Emissão|5 - Nr item|" +
+            "6 - CST PIS|7 - Alíquota|8 - Base Calc|9 - Vlr PIS|10 - CST Cofins|11 - Alíq Cofins|" +
+            "12 - BC Cofins|13 - Valor Cofins|14 - Dt Apropriação|Linha preenchida IN25/10 - 4.10.1|");
+
+            i = 2;
+            string calcA, calcB, calcC, calcD, calcE, calcF, calcG, calcH, calcI, calcJ, calcK, calcL, calcM, calcN, calcO;
+            int countTemp;
+
+            foreach (string y in C100)
+            {
+
+                calcA = "";
+                calcB = "";
+                calcC = "";
+                calcD = "";
+                calcE = "";
+                calcF = "";
+                calcG = "";
+                calcH = "";
+                calcI = "";
+                calcJ = "";
+                calcL = "";
+                calcK = "";
+                calcM = "";
+                calcN = "";
+                calcO = "";
+
+                string[] value = y.Split('|');//.Where(x => x != "");
+
+                CarregaBlocoCSheet40(sheet, i, value);
+
+                countTemp = 0;
+
+                if (value.Length >= 30)
+                {
+                    if (calcTempC[countTemp].ToString().Substring(0, 1) == "1" && sheet.Cells[i, 1].Value.ToString() == "C170")
+                    {
+                        calcA = calcTempC[countTemp].Substring(2, 2);
+                        calcB = calcTempC[countTemp].Substring(14, 3);
+                        calcC = calcTempC[countTemp].Substring(5, 9);
+                        calcD = calcTempC[countTemp].Substring(17, 8);
+                        calcE = string.IsNullOrEmpty(sheet.Cells[i, 2].Value.ToString()) ? sheet.Cells[i, 2].Value.ToString().PadLeft(3, '0') : "000";
+                        calcF = sheet.Cells[i, 25].Value.ToString();
+                        calcG = string.Format(@"{0:0,0000}", (sheet.Cells[i, 27].Value ?? "0,0000").ToString());
+                        calcH = string.Format(@"{0:0,0000}", (sheet.Cells[i, 26].Value ?? "0,0000").ToString());
+                        calcI = string.Format(@"{0:f}", (sheet.Cells[i, 30].Value ?? "0,00").ToString());
+                        calcK = string.Format(@"{0:0,0000}", (sheet.Cells[i, 33].Value ?? "0,0000").ToString());
+                        calcM = string.Format(@"{0:f}", (sheet.Cells[i, 36].Value ?? "0,00").ToString());
+                        calcN = calcTempC[countTemp].Substring(25, 8);
+
+                    }
+                    else
+                    {
+                        calcA = "FALSO";
+                        calcB = "FALSO";
+                        calcC = "FALSO";
+                        calcD = "FALSO";
+                        calcE = "FALSO";
+                        calcF = "FALSO";
+                        calcG = "FALSO";
+                        calcH = "FALSO";
+                        calcI = "FALSO";
+                        calcK = "FALSO";
+                        calcM = "FALSO";
+                        calcN = "FALSO";
+                    }
+
+                    calcJ = calcF;
+                    calcL = calcH;
+
+                    if (sheet.Cells[i, 1].Value.ToString() == "C170")
+                    {
+                        countTemp++;
+                    }
+
+                    calcO = calcA + calcB.PadLeft(5, ' ') + calcC + calcD + calcE + calcF.PadLeft(2, ' ') + calcG.Replace(',', ' ') + calcH.Replace(',', ' ') + calcI.Replace(',', ' ') + calcJ.Replace(',', ' ') +
+                        calcK.Replace(',', ' ') + calcL.Replace(',', ' ') + calcM.Replace(',', ' ') + calcN;
+
+                    x.WriteLine("|" + calcA + "|" + calcB + "|" + calcC + "|" + calcD + "|" + calcE + "|" + calcF + "|" + calcG + "|" + calcH + "|" + calcI + "|" + calcJ + "|" + calcK + "|" + calcL + "|" + calcM + "|" + calcN + "|" + calcO + "|");
+
+                    i++;
+
+                }
+            }
+        }
+
+        private void GerarBloco439(ExcelWorksheet sheet, out int i, out string caminho, out string path)
+        {
+            //inicio do bloco 4.3.9
+            StreamWriter x;
+
+            caminho = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            path = caminho + @"\Bloco4.3.9.txt";
+            x = File.CreateText(path);
+
+            // Títulos
+            x.WriteLine("|1 - Série|2 - Nr docto|3 - DT Emissão|4 - Participante|5 - Nr item|" +
+            "6 - Código Serviço|7 - Descrição compl|8 - Valor do serviço|9 - Desconto|10 - Aliq ISS|11 - Base Calculo ISS|" +
+            "12 - VL ISS|Linha preenchida IN25/10 - 4.3.9|");
+
+            i = 2;
+            string calcA, calcB, calcC, calcD, calcE, calcF, calcG, calcH, calcI, calcJ, calcK, calcL, calcM;
+            int countTemp = 0, countSave = 0, usualCount = 0;
+            float calc = 0;
+            bool savedCount = false;
+
+            foreach (string y in A100)
+            {
+                calcA = "";
+                calcB = "";
+                calcC = "";
+                calcD = "";
+                calcE = "";
+                calcF = "";
+                calcG = "";
+                calcH = "";
+                calcI = "";
+                calcJ = "";
+                calcK = "";
+                calcL = "";
+                calcM = "";
+
+                string[] value = y.Split('|');//.Where(x => x != "");
+                CarregaBlocoA(sheet, i, value);
+
+                if (sheet.Cells[i, 1].Value.ToString() == "A170")
+                {
+                    calcA = calcTempB[countTemp].Substring(3, 3);
+                    calcB = calcTempB[countTemp].Substring(6, 9);
+                    calcC = calcTempB[countTemp].Substring(15, 8);
+                    calcD = calcTempB[countTemp].Substring(19, 7);
+                    calcE = sheet.Cells[i, 2].Value.ToString().PadLeft(3, '0');
+                    calcF = sheet.Cells[i, 3].Value.ToString();
+                    calcH = string.Format(@"{0:f}", sheet.Cells[i, 5].Value.ToString());
+                    calcI = string.Format(@"{0:f}", sheet.Cells[i, 6].Value.ToString());
+                    calcL = string.Format(@"{0:f}", sheet.Cells[i, 21].Value.ToString());
+                    savedCount = false;
+                }
+                else
+                {
+                    calcA = "FALSO";
+                    calcB = "FALSO";
+                    calcC = "FALSO";
+                    calcD = "FALSO";
+                    calcE = "FALSO";
+                    calcF = "FALSO";
+                    calcH = "FALSO";
+                    calcI = "FALSO";
+                    calcL = "FALSO";
+                }
+                countTemp = usualCount + 1;
+                usualCount = countTemp;
+
+                if (countTemp != calcTempB.Count())
+                {
+                    foreach (var ind in calcTempB)
+                    {//estorou o numero de casas do array
+                        if (calcTempB[countTemp].ToString() == "")
+                        {
+                            countTemp = countTemp - 1;
+                        }
+                        else
+                        {
+                            if (!savedCount)
+                            {
+                                countSave = countTemp;
+                                savedCount = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                calcK = calcH;
+
+                if (!string.IsNullOrEmpty(calcK) && !string.IsNullOrEmpty(calcL) &&
+                    calcK != "FALSO" && calcL != "FALSO")
+                {
+                    calc = (float.Parse(calcL) / float.Parse(calcK)) * 100;
+                    calcJ = string.Format(@"{0:f}", calc);
+                }
+                else
+                {
+                    calcJ = "FALSO";
+                }
+
+                calcM = calcA.PadLeft(5, ' ') + calcB.PadLeft(9, ' ') + calcC + calcD.PadLeft(14, ' ') + calcE + calcF.PadLeft(20, ' ') + calcG.PadLeft(45, ' ') +
+                    calcH.Replace(',', ' ') + calcI.Replace(',', ' ') + calcJ.Replace(',', ' ') + calcK.Replace(',', ' ') + calcL.Replace(',', ' ');
+
+                x.WriteLine("|" + calcA + "|" + calcB + "|" + calcC + "|" + calcD + "|" + calcE + "|" + calcF + "|" + calcG + "|" + calcH + "|" + calcI + "|" + calcJ + "|" + calcK + "|" + calcL + "|" + calcM + "|");
+                i++;
+            }
+        }
+
+        private void GerarBloco438(ExcelWorksheet sheet, out int i, out string caminho, out string path)
+        {
+
+            //Inicio do bloco 4.3.8
+            StreamWriter x;
+
+            caminho = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            path = caminho + @"\Bloco4.3.8.txt";
+            x = File.CreateText(path);
+
+            // Títulos
+            x.WriteLine("|1 - Série|2 - Nr docto|3 - DT Emissão|4 - Participante|5 - Valor do serviço|" +
+            "6 - Desconto|7 - Aliq IRR|8 - Base Calculo IRRF|9 - VL IRRF|Linha preenchida IN25/10 - 4.3.8|");
+
+            i = 2;
+            string calcA, calcB, calcC, calcD, calcE, calcF, calcG, calcH, calcI, calcJ;
+
+
+            foreach (string y in A100)
+            {
+                calcA = "";
+                calcB = "";
+                calcC = "";
+                calcD = "";
+                calcE = "";
+                calcF = "";
+                calcG = "";
+                calcH = "";
+                calcI = "";
+                calcJ = "";
+
+                string[] value = y.Split('|');//.Where(x => x != "");
+                CarregaBlocoA(sheet, i, value);
+
+                if (sheet.Cells[i, 1].Value.ToString() == "A100")
+                {
+                    calcA = sheet.Cells[i, 6].Value.ToString().Replace(',', ' ');
+                    calcB = sheet.Cells[i, 8].Value.ToString().PadLeft(9, '0');
+                    calcC = sheet.Cells[i, 10].Value.ToString();
+                    calcD = sheet.Cells[i, 4].Value.ToString();
+                    calcE = string.Format(@"{0:f}", sheet.Cells[i, 12].Value.ToString());
+                    calcF = string.Format(@"{0:f}", sheet.Cells[i, 14].Value.ToString());
+                }
+                else
+                {
+                    calcA = "FALSO";
+                    calcB = "FALSO";
+                    calcC = "FALSO";
+                    calcD = "FALSO";
+                    calcE = "FALSO";
+                    calcF = "FALSO";
+                }
+                calcG = "";
+                calcH = "";
+                calcI = "";
+
+                calcJ = calcA.PadLeft(5, ' ') + calcB + calcC + calcD.PadLeft(14, ' ') + calcE.Replace(',', ' ') + calcF.Replace(',', ' ') +
+                    calcG.Replace(',', ' ') + calcH.Replace(',', ' ') + calcI.Replace(',', ' ');
+
+                x.WriteLine("|" + calcA + "|" + calcB + "|" + calcC + "|" + calcD + "|" + calcE + "|" + calcF + "|" + calcG + "|" + calcH + "|" + calcI + "|" + calcJ + "|");
+
+                i++;
+            }
+        }
+
+        private static void CarregaBlocoA(ExcelWorksheet sheet, int i, string[] value)
+        {
+            for (int j = 1; j < value.Count(); j++)
+            {
+                if (j == 1)
+                {
+                    sheet.Cells[i, 1].Value = value[j];
+                }
+                if (j == 3)
+                {
+                    sheet.Cells[i, 3].Value = value[j];
+                }
+                if (j == 4)//substituindo a mesma linha, corrigir o valor de i
+                {
+                    sheet.Cells[i, 4].Value = value[j];
+                }
+                if (j == 5)
+                {
+                    sheet.Cells[i, 5].Value = value[j];
+                }
+                if (j == 7)
+                {
+                    sheet.Cells[i, 7].Value = value[j];
+                }
+                if (j == 8)
+                {
+                    sheet.Cells[i, 8].Value = value[j];
+                }
+                if (j == 10)
+                {
+                    sheet.Cells[i, 10].Value = value[j];
+                }
+                if (j == 11)
+                {
+                    sheet.Cells[i, 11].Value = value[j];
+                }
+                if (j == 16)
+                {
+                    sheet.Cells[i, 16].Value = value[j];
+                }
+                if (j == 14)
+                {
+                    sheet.Cells[1, 14].Value = value[j];
+                }
+                if (j == 18)
+                {
+                    sheet.Cells[i, 18].Value = value[j];
+                }
+                if (j == 19)
+                {
+                    sheet.Cells[i, 19].Value = value[j];
+                }
+                if (j == 20)
+                {
+                    sheet.Cells[i, 20].Value = value[j];
+                }
+                if (j == 12)
+                {
+                    sheet.Cells[i, 12].Value = value[j];
+                }
+                if (j == 17)
+                {
+                    sheet.Cells[i, 17].Value = value[j];
+                }
+                if (j == 6)
+                {
+                    sheet.Cells[i, 6].Value = value[j];
+                }
+                if (j == 13)
+                {
+                    sheet.Cells[i, 13].Value = value[j];
+                }
+                if (j == 21)
+                {
+                    sheet.Cells[i, 21].Value = value[j];
+                }
+
+            }
+        }
+
+        private void GerarBloco434(ExcelWorksheet sheet, out int i, out string caminho, out string path)
+        {
+            //Inicio do bloco 4.3.4
+            StreamWriter x;
+
+
+            caminho = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            path = caminho + @"\Bloco4.3.4.txt";
+            x = File.CreateText(path);
+
+            // Títulos
+            x.WriteLine("|1 - Modelo|2 - Série|3 - Nr docto|4 - DT Emissão|5 - Participante|" +
+            "6 - Nr item|7 - Cód Merc/Serv|8 - Descrição compl|9 - CFOP|10 - Cod Nat|11 - Clas Fisc Merc|12 - Qtdade|13 - unid|" +
+            "14 - Vlr Unit|15 -Vlr Tot Item|16 - Desconto|17 - Ind Trib IPI|18 - Aliq IPI|19 - BC IPI|20 - Vlr IPI|21 - CST ICMS|" +
+            "22 - Ind ICMS|23 - Aliq ICMS|24 - BC ICMS|25 - Vlr ICMS Pr|26 - BC ICMS ST|27 -Vlr ICMS ST|28 - Ind Mov|29 - CST IPI|" +
+            "Linha preenchida IN86 - 4.3.4|");
+
+            float calc = 0;
+
+            i = 2;
+            string calcA, calcB, calcC, calcD, calcE, calcF, calcG, calcH, calcI, calcJ, calcK, calcL, calcM, calcN, calcO, calcP, calcQ, calcR, calcS, calcT, calcU, calcV, calcW, calcX, calcY, calcZ, calcAA, calcAB, calcAC, calcAD;
+            int countTemp, count;
+
+            foreach (string y in C100)
+            {
+
+                calcA = "";
+                calcB = "";
+                calcC = "";
+                calcD = "";
+                calcE = "";
+                calcF = "";
+                calcG = "";
+                calcH = "";
+                calcI = "";
+                calcJ = "";
+                calcL = "";
+                calcK = "";
+                calcM = "";
+                calcN = "";
+                calcO = "";
+                calcP = "";
+                calcQ = "";
+                calcR = "";
+                calcS = "";
+                calcT = "";
+                calcU = "";
+                calcV = "";
+                calcW = "";
+                calcX = "";
+                calcY = "";
+                calcZ = "";
+                calcAA = "";
+                calcAB = "";
+                calcAC = "";
+                calcAD = "";
+
+                string[] value = y.Split('|');//.Where(x => x != "");
+
+                CarregaBlocoCSheet40(sheet, i, value);
+
+                countTemp = 0;
+                count = 0;
+
+                if (value.Length >= 30)
+                {
+                    if (calcTempC[countTemp].ToString().Substring(0, 1) == "1" && sheet.Cells[i, 1].Value.ToString() == "C170")
+                    {
+                        calcA = calcTempC[countTemp].Substring(2, 2);
+                        calcB = calcTempC[countTemp].Substring(14, 3);
+                        calcC = calcTempC[countTemp].Substring(5, 9);
+                        calcD = calcTempC[countTemp].Substring(17, 8);
+                        calcE = calcTempC[countTemp].Substring(14, 8);
+                        calcF = sheet.Cells[i, 2].Value.ToString().PadLeft(3, '0');
+                        calcG = sheet.Cells[i, 3].Value.ToString();
+
+                        if (sheet.Cells[i, 4].Value.ToString() == "")
+                        {
+                            calcH = "";
+                        }
+                        else
+                        {
+                            calcH = sheet.Cells[i, 4].Value.ToString();
+                        }
+
+                        calcI = sheet.Cells[i, 11].Value.ToString();
+                        calcJ = sheet.Cells[i, 12].Value.ToString();
+                        calcL = sheet.Cells[i, 5].Value.ToString();
+                        calcM = sheet.Cells[i, 6].Value.ToString();
+
+                        if (!string.IsNullOrEmpty(calcL))
+                        {
+                            calc = float.Parse(sheet.Cells[i, 7].Value.ToString());
+                            calcN = string.Format(@"{0:f}", calc / float.Parse(calcL));
+                        }
+                        else
+                        {
+                            calcN = "0,00";
+                        }
+
+                        calcO = string.Format(@"{0:f}", sheet.Cells[i, 7].Value.ToString());
+                        calcP = string.Format(@"{0:f}", sheet.Cells[i, 8].Value.ToString());
+                        calcR = string.Format(@"{0:f}", sheet.Cells[i, 23].Value.ToString());
+                        calcS = string.Format(@"{0:f}", sheet.Cells[i, 22].Value.ToString());
+                        calcT = string.Format(@"{0:f}", sheet.Cells[i, 24].Value.ToString());
+                        calcU = sheet.Cells[i, 10].Value.ToString().PadLeft(3, '0');
+                        calcW = string.Format(@"{0:f}", sheet.Cells[i, 14].Value.ToString());
+                        calcX = sheet.Cells[i, 13].Value.ToString();
+                        calcY = string.Format(@"{0:f}", sheet.Cells[i, 15].Value.ToString());
+                        calcZ = string.Format(@"{0:f}", sheet.Cells[i, 16].Value.ToString());
+                        calcAA = string.Format(@"{0:f}", sheet.Cells[i, 18].Value.ToString());
+
+                        if (sheet.Cells[i, 9].Value.ToString() == "0")
+                        {
+                            calcAB = "S";
+                        }
+                        else
+                        {
+                            calcAB = "N";
+                        }
+
+
+                    }
+                    else
+                    {
+                        calcA = "FALSO";
+                        calcB = "FALSO";
+                        calcC = "FALSO";
+                        calcD = "FALSO";
+                        calcE = "FALSO";
+                        calcF = "FALSO";
+                        calcG = "FALSO";
+                        calcH = "FALSO";
+                        calcI = "FALSO";
+                        calcJ = "FALSO";
+                        calcK = "FALSO";
+                        calcL = "FALSO";
+                        calcM = "FALSO";
+                        calcN = "FALSO";
+                        calcO = "FALSO";
+                        calcP = "FALSO";
+                        calcT = "FALSO";
+                        calcR = "FALSO";
+                        calcS = "FALSO";
+                        calcU = "FALSO";
+                        calcW = "0,00";
+                        calcX = "FALSO";
+                        calcY = "FALSO";
+                        calcZ = "FALSO";
+                        calcAA = "FALSO";
+                        calcAB = "FALSO";
+
+                        if (calcQ == "1")
+                        {
+                            calcAC = "00";
+                        }
+                        else
+                        {
+                            calcAC = "02";
+                        }
+                    }
+                    countTemp++;
+
+                    if (calcG.ToString() != null && calcG.ToString() != "FALSO")
+                    {
+                        foreach (string g in calcR200)
+                        {
+                            if (g.Equals(calcG.ToString()))
+                            {
+                                calcK = g;
+                            }
+
+                            if (calcK != "")
+                                break;
+
+                            count++;
+                        }
+                    }
+                    else
+                    {
+                        calcK = "FALSO";
+                    }
+
+                    if (calcT == "0,00")
+                    {
+                        calcQ = "2";
+                    }
+                    else
+                    {
+                        calcQ = "1";
+                    }
+
+                    if (calcU.Substring(2, 1) == "2" || calcU.Substring(2, 1) == "1" || calcU.Substring(2, 1) == "0")
+                    {
+                        calcV = "1";
+                    }
+                    else if (calcU.Substring(2, 1) == "9")
+                    {
+                        calcV = "3";
+                    }
+                    else if (calcU.Substring(2, 1) == "7")
+                    {
+                        calcV = "1";
+                    }
+                    else
+                    {
+                        calcV = "2";
+                    }
+
+                    if (calcQ == "1")
+                    {
+                        calcAC = "00";
+                    }
+                    else
+                    {
+                        calcAC = "02";
+                    }
+
+                    calcAD = calcA + calcB.PadLeft(5, ' ') + calcC + calcD + calcE.PadLeft(14, ' ') + calcF.PadLeft(3, ' ') + calcG.PadLeft(20, ' ') +
+                        calcH.PadLeft(45, ' ') + calcI + calcJ.PadLeft(6, ' ') + calcK.PadLeft(8, ' ') + calcL.Replace(',', ' ') + calcM.PadLeft(3, ' ') +
+                        calcN.Replace(',', ' ') + calcO.Replace(',', ' ') + calcP.Replace(',', ' ') + calcQ + calcR.Replace(',', ' ') + calcS.Replace(',', ' ') +
+                        calcT.Replace(',', ' ') + calcU + calcV + calcW.Replace(',', ' ') + calcX.Replace(',', ' ') + calcY.Replace(',', ' ') + calcZ.Replace(',', ' ') +
+                        calcAA.Replace(',', ' ') + calcAB + calcAC.PadLeft(2, ' ');
+
+                    x.WriteLine("|" + calcA + "|" + calcB + "|" + calcC + "|" + calcD + "|" + calcE + "|" + calcF + "|" + calcG + "|" + calcH + "|" + calcI + "|" + calcJ + "|" + calcK + "|" + calcL + "|" + calcM + "|" + calcN + "|" + calcO + "|" + calcP + "|" + calcQ + "|" + calcR + "|" + calcS + "|" + calcT + "|" + calcU + "|" + calcV + "|" + calcW + "|" + calcX + "|" + calcY + "|" + calcZ + "|" + calcAA + "|" + calcAB + "|" + calcAC + "|" + calcAD + "|");
+                }
+
+                i++;
+            }
+        }
+
+        private void GerarBloco433(ExcelWorksheet sheet, out int i, out string caminho, out string path)
+        {
+            //Inicio do bloco 4.3.3
+            StreamWriter x;
+
+
+            caminho = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            path = caminho + @"\Bloco4.3.3.txt";
+            x = File.CreateText(path);
+
+            // Títulos
+            x.WriteLine("|1 - Modelo|2 - Série|3 - Nr docto|4 - DT Emissão|5 - Participante|" +
+            "6 - DT Entrada|7 - VL Mercadorias|8 - Desc|9 - Vlr Frete|10 - Vlr Seguro|11 - Vlr Out Despesas|12 - Vlr IPI|13 - Vlr ICMS ST|" +
+            "14 -Vlr T NF|15 - IE Sub|16 - Tipo Fat|17 - Observ|18 - Ato Declaratorio|19 - Mod Doc Ref|20 - Ser/Sub Doc Ref|21 - Num Doc Ref|" +
+            "22 - Data Em Doc Ref|23 -Part Doc Ref|Linha preenchida IN86 - 4.3.3|");
+
+
+            i = 2;
+            string calcA, calcB, calcC, calcD, calcE, calcF, calcG, calcH, calcI, calcJ, calcK, calcL, calcM, calcN, calcO, calcP, calcQ, calcR, calcS, calcT, calcU, calcV, calcW, calcX, calcY;
+
+            foreach (string y in C100)
+            {
+
+                calcA = "";
+                calcB = "";
+                calcC = "";
+                calcD = "";
+                calcE = "";
+                calcF = "";
+                calcG = "";
+                calcH = "";
+                calcI = "";
+                calcJ = "";
+                calcL = "";
+                calcK = "";
+                calcM = "";
+                calcN = "";
+                calcO = "";
+                calcP = "";
+                calcQ = "";
+                calcR = "";
+                calcS = "";
+                calcT = "";
+                calcU = "";
+                calcV = "";
+                calcW = "";
+                calcX = "";
+                calcY = "";
+
+                string[] value = y.Split('|');//.Where(x => x != "");
+
+                CarregaBlocoCSheet40(sheet, i, value);
+
+                if (value.Length >= 30)
+                {
+                    if (sheet.Cells[i, 1].Value.ToString() == "C100" && sheet.Cells[i, 3].Value.ToString() == "1")
+                    {
+                        calcA = sheet.Cells[i, 5].Value.ToString();
+                        calcB = sheet.Cells[i, 7].Value.ToString().Replace("*", "").PadLeft(3, '0');
+                        calcC = sheet.Cells[i, 8].Value.ToString().PadLeft(9, '0');
+
+                        if (sheet.Cells[i, 9].Value.ToString() == "")
+                        {
+                            calcD = "";
+                        }
+                        else
+                        {
+                            calcD = sheet.Cells[i, 9].Value.ToString();
+                        }
+
+                        if (sheet.Cells[i, 4].Value.ToString() == "")
+                        {
+                            calcE = "";
+                        }
+                        else
+                        {
+                            calcE = sheet.Cells[i, 4].Value.ToString();
+                        }
+
+                        if (sheet.Cells[i, 10].Value.ToString() == "")
+                        {
+                            calcF = "";
+                        }
+                        else
+                        {
+                            calcF = sheet.Cells[i, 11].Value.ToString();
+                        }
+
+                        calcG = string.Format(@"{0:f}", sheet.Cells[i, 16].Value.ToString());
+                        calcH = string.Format(@"{0:f}", sheet.Cells[i, 14].Value.ToString());
+                        calcI = string.Format(@"{0:f}", sheet.Cells[i, 18].Value.ToString());
+                        calcJ = string.Format(@"{0:f}", sheet.Cells[i, 19].Value.ToString());
+                        calcK = string.Format(@"{0:f}", sheet.Cells[i, 20].Value.ToString());
+                        calcL = string.Format(@"{0:f}", sheet.Cells[i, 25].Value.ToString());
+                        calcM = string.Format(@"{0:f}", sheet.Cells[i, 24].Value.ToString());
+                        calcN = string.Format(@"{0:f}", sheet.Cells[i, 12].Value.ToString());
+                        calcO = "";
+
+                        if (sheet.Cells[i, 13].Value.ToString() == "0")
+                        {
+                            calcP = "1";
+                        }
+                        else
+                        {
+                            if (sheet.Cells[i, 13].Value.ToString() == "1")
+                            {
+                                calcP = "2";
+                            }
+                            else
+                            {
+                                calcP = "";
+                            }
+                        }
+
+                        calcQ = "";
+                        calcR = "";
+
+                        if (sheet.Cells[i, 38].Value.ToString() == "")
+                        {
+                            calcS = "";
+                        }
+                        else
+                        {
+                            calcS = sheet.Cells[i, 38].Value.ToString();
+                        }
+
+                        if (sheet.Cells[i, 39].Value.ToString() == "")
+                        {
+                            calcT = "";
+                        }
+                        else
+                        {
+                            calcT = sheet.Cells[i, 39].Value.ToString();
+                        }
+
+                        if (sheet.Cells[i, 40].Value.ToString() == "")
+                        {
+                            calcU = "";
+                        }
+                        else
+                        {
+                            calcU = sheet.Cells[i, 40].Value.ToString();
+                        }
+
+                        if (sheet.Cells[i, 41].Value.ToString() == "")
+                        {
+                            calcV = "";
+                        }
+                        else
+                        {
+                            calcV = sheet.Cells[i, 41].Value.ToString();
+                        }
+
+                        if (sheet.Cells[i, 42].Value.ToString() == "")
+                        {
+                            calcW = "";
+                        }
+                        else
+                        {
+                            calcW = sheet.Cells[i, 42].Value.ToString();
+                        }
+
+                        calcX = "";
+
+                    }
+                    else
+                    {
+                        calcA = "FALSO";
+                        calcB = "FALSO";
+                        calcC = "FALSO";
+                        calcD = "FALSO";
+                        calcE = "FALSO";
+                        calcF = "FALSO";
+                        calcG = "FALSO";
+                        calcH = "FALSO";
+                        calcI = "FALSO";
+                        calcJ = "FALSO";
+                        calcK = "FALSO";
+                        calcL = "FALSO";
+                        calcM = "FALSO";
+                        calcN = "FALSO";
+                        calcO = "";
+                        calcP = "FALSO";
+                        calcQ = "";
+                        calcR = "";
+                        calcS = "FALSO";
+                        calcT = "FALSO";
+                        calcU = "FALSO";
+                        calcV = "FALSO";
+                        calcW = "FALSO";
+                        calcX = "";
+                    }
+
+                    calcY = calcA + calcB.PadLeft(5, ' ').Substring(5) + calcC + calcD.PadLeft(8, ' ').Substring(8) + calcE.PadLeft(14, ' ').Substring(14) +
+                        calcF.PadLeft(8, ' ').Substring(8) + calcG.Replace(',', ' ') + calcH.Replace(',', ' ') + calcI.Replace(',', ' ') + calcJ.Replace(',', ' ') +
+                        calcK.Replace(',', ' ') + calcL.Replace(',', ' ') + calcM.Replace(',', ' ') + calcN.Replace(',', ' ') + calcO.PadLeft(14, ' ').Substring(14) +
+                        calcP.PadLeft(1, ' ').Substring(1) + calcQ.PadLeft(45, ' ').Substring(45) + calcR.PadLeft(50, ' ').Substring(50) + calcS.PadLeft(2, ' ').Substring(2) +
+                        calcT.PadLeft(5, ' ').Substring(5) + calcU.PadLeft(9, ' ').Substring(9) + calcV.PadLeft(8, ' ').Substring(8) + calcW.PadLeft(14, ' ').Substring(14);
+
+                    x.WriteLine("|" + calcA + "|" + calcB + "|" + calcC + "|" + calcD + "|" + calcE + "|" + calcF + "|" + calcG + "|" + calcH + "|" + calcI + "|" + calcJ + "|" + calcK + "|" + calcL + "|" + calcM + "|" + calcN + "|" + calcO + "|" + calcP + "|" + calcQ + "|" + calcR + "|" + calcS + "|" + calcT + "|" + calcU + "|" + calcV + "|" + calcW + "|" + calcX + "|" + calcY + "|");
+                }
+
+                i++;
+            }
+        }
+
+        private void GerarBloco432(ExcelWorksheet sheet, out int i, out string caminho, out string path)
+        {
+            //Inicio do bloco 4.3.2
+            StreamWriter x;
+
+
+            caminho = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            path = caminho + @"\Bloco4.3.2.txt";
+            x = File.CreateText(path);
+
+            // Títulos
+            x.WriteLine("|1 - Ind Movto|2 - Modelo|3 - Série|4 - Nr docto|5 - DT Emissão" +
+            "|6 - Nr item|7 - Cód Merc/Serv|8 - Descrição compl|9 - CFOP|10 - Cod Nat|11 - Clas Fisc Merc|12 - Qtdade|13 - unid" +
+            "|14 - Vlr Unit|15 - Vlr Tot Item|16 - Desconto|17 - Ind Trib IPI|18 - Aliq IPI|19 - BC IPI|20 - Vlr IPI|21 - CST ICMS" +
+            "|22 - Ind ICMS|23 - Aliq ICMS|24 - BC ICMS|25 - Vlr ICMS Pr|26 - BC ICMS ST|27 - Vlr ICMS ST|28 - Ind Mov|29 - CST IPI" +
+            "|Linha Preenchida IN86 - 4.3.2|");
+
+            i = 2;
+            string calcA, calcB, calcC, calcD, calcE, calcF, calcG, calcH, calcI, calcJ, calcK, calcL, calcM, calcN, calcO, calcP, calcQ, calcR, calcS, calcT, calcU, calcV, calcW, calcX, calcY, calcZ, calcAA, calcAB, calcAC, calcAD;
+            float nCalc;
+            int count = 1, countTemp;
+
+            countTemp = 0;
+
+            foreach (string y in C100)
+            {
+                calcA = "";
+                calcB = "";
+                calcC = "";
+                calcD = "";
+                calcE = "";
+                calcF = "";
+                calcG = "";
+                calcH = "";
+                calcI = "";
+                calcJ = "";
+                calcL = "";
+                calcK = "";
+                calcM = "";
+                calcN = "";
+                calcO = "";
+                calcP = "";
+                calcQ = "";
+                calcR = "";
+                calcS = "";
+                calcT = "";
+                calcU = "";
+                calcV = "";
+                calcW = "";
+                calcX = "";
+                calcY = "";
+                calcZ = "";
+                calcAA = "";
+                calcAB = "";
+                calcAC = "";
+                calcAD = "";
+
+                string[] value = y.Split('|');//.Where(x => x != "");
+
+                CarregarSheetBlocoC(sheet, i, value);
+
+                if (value.Length >= 39)
+                {
+                    if (calcTempC[countTemp].ToString() != "" && sheet.Cells[i, 1].Value != null)
+                    {
+                        if (calcTempC[countTemp].Substring(0, 1).ToString() == "0" && sheet.Cells[i, 1].Value.ToString() == "C170")
+                        {
+                            calcA = "E";
+
+                            calcB = calcTempC[countTemp].Substring(2, 2);
+                            calcC = calcTempC[countTemp].Substring(14, 3);
+                            calcD = calcTempC[countTemp].Substring(5, 9);
+                            calcE = calcTempC[countTemp].Substring(17, 8);
+
+                            calcC = calcC.Replace('*', ' ');
+                        }
+                        else
+                        {//errado a verificação e os valores do calculo
+                            calcA = "S";
+
+                            calcB = calcTempC[countTemp].Substring(2, 2);
+                            calcC = calcTempC[countTemp].Substring(14, 3);
+                            calcD = calcTempC[countTemp].Substring(5, 9);
+                            calcE = calcTempC[countTemp].Substring(17, 8);
+                            calcC = calcC.Replace('*', ' ');
+                        }
+                        if (!string.IsNullOrEmpty(sheet.Cells[i, 2].Value.ToString()))
+                        {
+                            calcF = sheet.Cells[i, 2].Value.ToString().PadLeft(3, '0');
+                        }
+                        else
+                        {
+                            calcF = "FALSO";
+                        }
+                        if (!string.IsNullOrEmpty(sheet.Cells[i, 3].Value.ToString()))
+                        {
+                            calcG = sheet.Cells[i, 3].Value.ToString();
+                        }
+                        else
+                        {
+                            calcG = "FALSO";
+                        }
+                        if (!string.IsNullOrEmpty(sheet.Cells[i, 4].Value.ToString()))
+                        {
+                            calcH = sheet.Cells[i, 4].Value.ToString();
+                        }
+                        else
+                        {
+                            calcH = "FALSO";
+                        }
+                        if (!string.IsNullOrEmpty(sheet.Cells[i, 11].Value.ToString()))
+                        {
+                            calcI = sheet.Cells[i, 11].Value.ToString();
+                        }
+                        else
+                        {
+                            calcI = "FALSO";
+                        }
+                        if (!string.IsNullOrEmpty(sheet.Cells[i, 12].Value.ToString()))
+                        {
+                            calcJ = sheet.Cells[i, 12].Value.ToString();
+                        }
+                        else
+                        {
+                            calcJ = "FALSO";
+                        }
+                        if (calcG.ToString() != null && calcG.ToString() != "FALSO")
+                        {
+                            foreach (string g in calcR200)
+                            {
+                                if (g.Equals(calcG.ToString()))
+                                {
+                                    calcK = g;
+                                }
+
+                                if (calcK != "")
+                                    break;
+
+                                count++;
+                            }
+                        }
+                        else
+                        {
+                            calcK = "FALSO";
+                        }
+                        if (!string.IsNullOrEmpty(sheet.Cells[i, 5].Value.ToString()))
+                        {
+                            calcL = string.Format(@"{0:f}", sheet.Cells[i, 5].Value.ToString());
+                        }
+                        else
+                        {
+                            calcL = "FALSO";
+                        }
+                        if (!string.IsNullOrEmpty(sheet.Cells[i, 6].Value.ToString()))
+                        {
+                            calcM = sheet.Cells[i, 6].Value.ToString();
+                        }
+                        else
+                        {
+                            calcM = "FALSO";
+                        }
+                        if (!string.IsNullOrEmpty(sheet.Cells[i, 7].Value.ToString()) && calcL != null && calcL != "FALSO")
+                        {
+                            nCalc = float.Parse(sheet.Cells[i, 7].Value.ToString());
+                            calcN = string.Format(@"{0:f}", nCalc / float.Parse(calcL));
+                        }
+                        else
+                        {
+                            calcN = "FALSO";
+                        }
+                        if (!string.IsNullOrEmpty(sheet.Cells[i, 7].Value.ToString()))
+                        {
+                            calcO = string.Format(@"{0:f}", sheet.Cells[i, 7].Value.ToString());
+                        }
+                        else
+                        {
+                            calcO = "FALSO";
+                        }
+                        if (!string.IsNullOrEmpty(sheet.Cells[i, 8].Value.ToString()))
+                        {
+                            calcP = string.Format(@"{0:f}", sheet.Cells[i, 8].Value.ToString());
+                        }
+                        else
+                        {
+                            calcP = "FALSO";
+                        }
+                        if (!string.IsNullOrEmpty(sheet.Cells[i, 24].Value.ToString()))
+                        {
+                            calcT = sheet.Cells[i, 24].Value.ToString();
+                        }
+                        else
+                        {
+                            calcT = "FALSO";
+                        }
+                        if (!string.IsNullOrEmpty(sheet.Cells[i, 23].Value.ToString()))
+                        {
+                            calcR = string.Format(@"{0:f}", sheet.Cells[i, 23].Value.ToString());
+                        }
+                        else
+                        {
+                            calcR = "FALSO";
+                        }
+                        if (!string.IsNullOrEmpty(sheet.Cells[i, 22].Value.ToString()))
+                        {
+                            calcS = string.Format(@"{0:f}", sheet.Cells[i, 22].Value.ToString());
+                        }
+                        else
+                        {
+                            calcS = "FALSO";
+                        }
+                        if (!string.IsNullOrEmpty(sheet.Cells[i, 10].Value.ToString()))
+                        {
+                            calcU = string.Format(@"{0:f}", sheet.Cells[i, 10].Value.ToString());
+                        }
+                        else
+                        {
+                            calcU = "FALSO";
+                        }
+                        if (string.IsNullOrEmpty(sheet.Cells[i, 14].Value.ToString()))
+                        {
+                            calcW = "0,00";
+                        }
+                        else
+                        {
+                            calcW = string.Format(@"{0:f}", sheet.Cells[i, 14].Value.ToString());
+                        }
+                        if (!string.IsNullOrEmpty(sheet.Cells[i, 13].Value.ToString()))
+                        {
+                            calcX = sheet.Cells[i, 13].Value.ToString();
+                        }
+                        else
+                        {
+                            calcX = "FALSO";
+                        }
+                        if (!string.IsNullOrEmpty(sheet.Cells[i, 15].Value.ToString()))
+                        {
+                            calcY = string.Format(@"{0:f}", sheet.Cells[i, 15].Value.ToString());
+                        }
+                        else
+                        {
+                            calcY = "FALSO";
+                        }
+                        if (!string.IsNullOrEmpty(sheet.Cells[i, 16].Value.ToString()))
+                        {
+                            calcZ = string.Format(@"{0:f}", sheet.Cells[i, 16].Value.ToString());
+                        }
+                        else
+                        {
+                            calcZ = "FALSO";
+                        }
+                        if (!string.IsNullOrEmpty(sheet.Cells[i, 18].Value.ToString()))
+                        {
+                            calcAA = string.Format(@"{0:f}", sheet.Cells[i, 18].Value.ToString());
+                        }
+                        else
+                        {
+                            calcAA = "FALSO";
+                        }
+                        if (sheet.Cells[i, 9].Value.ToString() == "0")
+                        {
+                            calcAB = "S";
+                        }
+                        else
+                        {
+                            calcAB = "N";
+                        }
+                    }
+                    else
+                    {
+                        calcA = "FALSO";
+                        calcB = "FALSO";
+                        calcC = "FALSO";
+                        calcD = "FALSO";
+                        calcE = "FALSO";
+                        calcF = "FALSO";
+                        calcG = "FALSO";
+                        calcH = "FALSO";
+                        calcI = "FALSO";
+                        calcJ = "FALSO";
+                        calcK = "FALSO";
+                        calcL = "FALSO";
+                        calcM = "FALSO";
+                        calcN = "FALSO";
+                        calcO = "FALSO";
+                        calcP = "FALSO";
+                        calcT = "FALSO";
+                        calcR = "FALSO";
+                        calcS = "FALSO";
+                        calcU = "FALSO";
+                        calcW = "0,00";
+                        calcX = "FALSO";
+                        calcY = "FALSO";
+                        calcZ = "FALSO";
+                        calcAA = "FALSO";
+                        calcAB = "FALSO";
+                    }
+                    countTemp++;
+                    if (calcT.Equals("0,00"))
+                    {
+                        calcQ = "2";
+                    }
+                    else
+                    {
+                        calcQ = "1";
+                    }
+
+                    if (!string.IsNullOrEmpty(calcU) && calcU != "FALSO")
+                    {
+                        if (int.Parse(calcU.Substring(2, 1)) < 3)
+                        {
+                            calcV = "1";
+                        }
+                        else if (int.Parse(calcU.Substring(2, 1)) == 9)
+                        {
+                            calcV = "3";
+                        }
+                        else if (int.Parse(calcU.Substring(2, 1)) == 7)
+                        {
+                            calcV = "1";
+                        }
+                        else
+                        {
+                            calcV = "2";
+                        }
+                    }
+                    else
+                    {
+                        calcV = "2";
+                    }
+
+                    if (sheet.Cells[i, 15].Value.ToString() == "1" && calcA == "S")
+                    {
+                        calcAC = "50";
+                    }
+                    else if (sheet.Cells[i, 15].Value.ToString() == "2" && calcA == "S")
+                    {
+                        calcAC = "52";
+                    }
+                    else if (sheet.Cells[i, 15].Value.ToString() == "1" && calcA == "E")
+                    {
+                        calcAC = "00";
+                    }
+                    else
+                    {
+                        calcAC = "02";
+                    }
+
+                    calcAD = calcA + calcB + calcC.PadRight(5, ' ') + calcD + calcE + calcF + calcG.PadLeft(20, ' ') + calcH.PadRight(45, ' ') + calcI.PadRight(6, ' ') +
+                        calcJ.PadRight(6, ' ') + calcK.Replace(',', ' ').PadLeft(8, '0') + calcL.Replace(',', ' ').PadLeft(17, '0') + calcM.PadLeft(3, ' ').PadLeft(3, '0') +
+                        calcN.Replace(',', ' ').PadLeft(17, '0') + calcO.Replace(',', ' ').PadLeft(17, '0') + calcP.Replace(',', ' ').PadLeft(17, '0') + calcQ +
+                        calcR.Replace(',', ' ').PadLeft(5, '0') + calcS.Replace(',', ' ').PadLeft(17, '0') + calcT.Replace(',', ' ').PadLeft(17, '0') + calcU + calcV +
+                        calcW.Replace(',', ' ').PadLeft(5, '0') + calcX.Replace(',', ' ').PadLeft(17, '0') + calcY.Replace(',', ' ').PadLeft(17, '0') + calcZ.Replace(',', ' ').PadLeft(17, '0') +
+                        calcAA.Replace(',', ' ').PadLeft(17, '0') + calcAB + calcAC.PadRight(2, ' ');
+
+                    x.WriteLine("|" + calcA + "|" + calcB + "|" + calcC + "|" + calcD + "|" + calcE + "|" + calcF + "|" + calcG + "|" + calcH + "|" + calcI + "|" + calcJ + "|" + calcK + "|" + calcL + "|" + calcM + "|" + calcN + "|" + calcO + "|" + calcP + "|" + calcQ + "|" + calcR + "|" + calcS + "|" + calcT + "|" + calcU + "|" + calcV + "|" + calcW + "|" + calcX + "|" + calcY + "|" + calcZ + "|" + calcAA + "|" + calcAB + "|" + calcAC + "|" + calcAD + "|");
+
+                }
+                i++;
+
+            }
+        }
+
+        private static void CarregarSheetBlocoC(ExcelWorksheet sheet, int i, string[] value)
+        {
+            for (int j = 1; j < value.Count(); j++)
+            {
+                if (value.Length >= 30)
                 {
                     if (j == 1)
                     {
-                        sheet12.Cells[i, 1].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"1\";\'Bloco C\'!C" + i + "=\"C170\");EXT.TEXTO(\'Bloco C\'!B" + i + ";3;2))";
+                        sheet.Cells[i, 1].Value = value[j];
                     }
                     if (j == 2)
                     {
-                        sheet12.Cells[i, 2].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"1\";\'Bloco C\'!C" + i + "=\"C170\");SUBSTITUIR(EXT.TEXTO(\'Bloco C\'!B" + i + ";14;3);\" * \";\"\"))";
+                        sheet.Cells[i, 2].Value = value[j];
                     }
                     if (j == 3)
                     {
-                        sheet12.Cells[i, 3].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"1\";\'Bloco C\'!C" + i + "=\"C170\");EXT.TEXTO(\'Bloco C\'!B" + i + ";5;9))";
+                        sheet.Cells[i, 3].Value = value[j];
                     }
                     if (j == 4)
                     {
-                        sheet12.Cells[i, 4].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"1\";\'Bloco C\'!C" + i + "=\"C170\");EXT.TEXTO(\'Bloco C\'!B" + i + ";17;8))";
+                        sheet.Cells[i, 4].Value = value[j];
                     }
                     if (j == 5)
                     {
-                        sheet12.Cells[i, 5].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"1\";\'Bloco C\'!C" + i + "=\"C170\");EXT.TEXTO(\'Bloco C\'!B" + i + ";33;14))";
+                        sheet.Cells[i, 5].Value = value[j];
                     }
                     if (j == 6)
                     {
-                        sheet12.Cells[i, 6].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"1\";\'Bloco C\'!C" + i + "=\"C170\");TEXTO(\'Bloco C\'!D" + i + ";\"000\"))";
+                        sheet.Cells[i, 6].Value = value[j];
                     }
                     if (j == 7)
                     {
-                        sheet12.Cells[i, 7].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"1\";\'Bloco C\'!C" + i + "=\"C170\");SE(\'Bloco C\'!AA" + i + "=\"\";\"\";\'Bloco C\'!AA" + i + "))";
+                        sheet.Cells[i, 7].Value = value[j];
                     }
                     if (j == 8)
                     {
-                        sheet12.Cells[i, 8].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"1\";\'Bloco C\'!C" + i + "=\"C170\");TEXTO(\'Bloco C\'!AC" + i + ";\"0,0000\"))";
+                        sheet.Cells[i, 8].Value = value[j];
                     }
                     if (j == 9)
                     {
-                        sheet12.Cells[i, 9].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"1\";\'Bloco C\'!C" + i + "=\"C170\");TEXTO(\'Bloco C\'!AB" + i + ";\"0,000\"))";
+                        sheet.Cells[i, 9].Value = value[j];
                     }
                     if (j == 10)
                     {
-                        sheet12.Cells[i, 10].Value = "=SE(G" + i + "=\"50\";\"0,00\";SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"1\";\'Bloco C\'!C" + i + "=\"C170\");TEXTO(M" + i + "*Faturamento!C$7;\"0,00\")))";
+                        sheet.Cells[i, 10].Value = value[j];
                     }
                     if (j == 11)
                     {
-                        sheet12.Cells[i, 11].Value = "=SE(G" + i + "=\"50\";M" + i + ";SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"1\";\'Bloco C\'!C" + i + "=\"C170\");TEXTO(M" + i + "*Faturamento!C$3;\"0,00\")))";
+                        sheet.Cells[i, 11].Value = value[j];
                     }
                     if (j == 12)
                     {
-                        sheet12.Cells[i, 12].Value = "=SE(G" + i + "=\"50\";\"0,00\";SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"1\";\'Bloco C\'!C" + i + "=\"C170\");TEXTO(M" + i + "*Faturamento!C$5;\"0,00\")))";
+                        sheet.Cells[i, 12].Value = value[j];
                     }
                     if (j == 13)
                     {
-                        sheet12.Cells[i, 13].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"1\";\'Bloco C\'!.C" + i + "=\"C170\");TEXTO(\'Bloco C\'!AF" + i + ";\"0,00\"))";
+                        sheet.Cells[i, 13].Value = value[j];
                     }
                     if (j == 14)
                     {
-                        sheet12.Cells[i, 14].Value = "=G" + i;
+                        sheet.Cells[i, 14].Value = value[j];
                     }
                     if (j == 15)
                     {
-                        sheet12.Cells[i, 15].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"1\";\'Bloco C\'!C" + i + "=\"C170\");TEXTO(\'Bloco C\'!AI" + i + ";\"0,0000\"))";
+                        sheet.Cells[i, 15].Value = value[j];
                     }
                     if (j == 16)
                     {
-                        sheet12.Cells[i, 16].Value = "=I" + i;
+                        sheet.Cells[i, 16].Value = value[j];
                     }
                     if (j == 17)
                     {
-                        sheet12.Cells[i, 17].Value = "=SE(N" + i + "=\"50\";\"0,00\";SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"1\";\'Bloco C\'!C" + i + "=\"C170\");TEXTO(T2*Faturamento!C$7;\"0,00\")))";
+                        sheet.Cells[i, 17].Value = value[j];
                     }
                     if (j == 18)
                     {
-                        sheet12.Cells[i, 18].Value = "=SE(N" + i + "=\"50\";T" + i + ";SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"1\";\'Bloco C\'!C" + i + "=\"C170\");TEXTO(T" + i + "*Faturamento!C$3;\"0,00\")))";
+                        sheet.Cells[i, 18].Value = value[j];
                     }
                     if (j == 19)
                     {
-                        sheet12.Cells[i, 19].Value = "=SE(N" + i + "=\"50\";\"0,00\";SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"1\";\'Bloco C\'!C" + i + "=\"C170\");TEXTO(T" + i + "*Faturamento!C$5;\"0,00\")))";
+                        sheet.Cells[i, 19].Value = value[j];
                     }
                     if (j == 20)
                     {
-                        sheet12.Cells[i, 20].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"1\";\'Bloco C\'!C" + i + "=\"C170\");TEXTO(\'Bloco C\'!AL" + i + ";\"0,00\"))";
+                        sheet.Cells[i, 20].Value = value[j];
                     }
                     if (j == 21)
                     {
-                        sheet12.Cells[i, 21].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"1\";\'Bloco C\'!C" + i + "=\"C170\");EXT.TEXTO(\'Bloco C\'!B" + i + ";25;8))";
+                        sheet.Cells[i, 21].Value = value[j];
                     }
                     if (j == 22)
                     {
-                        sheet12.Cells[i, 22].Value = "=CONCATENAR(A" + i + ";ESQUERDA(CONCATENAR(B" + i + ";REPT(\" \";5));5);C" + i + ";D" + i + ";ESQUERDA(CONCATENAR(E" + i + ";REPT(\" \";14));14);F" + i + ";ESQUERDA(CONCATENAR(G" + i + ";REPT(\" \";2));2);REPT(0;8-NÚM.CARACT(SUBSTITUIR(H" + i + ";\",\";\"\")))" +
-                            "&SUBSTITUIR(H" + i + ";\",\";);REPT(0;17-NÚM.CARACT(SUBSTITUIR(I" + i + ";\",\";\"\")))&SUBSTITUIR(I" + i + ";\",\";);REPT(0;17-NÚM.CARACT(SUBSTITUIR(J" + i + ";\",\";\"\")))&SUBSTITUIR(J" + i + ";\",\";);REPT(0;17-NÚM.CARACT(SUBSTITUIR(K" + i + ";\",\";\"\")))&SUBSTITUIR(K" + i + ";\",\";);" +
-                            "REPT(0;17-NÚM.CARACT(SUBSTITUIR(L" + i + ";\",\";\"\")))&SUBSTITUIR(L" + i + ";\",\";);REPT(0;17-NÚM.CARACT(SUBSTITUIR(M" + i + ";\",\";\"\")))&SUBSTITUIR(M" + i + ";\",\";);ESQUERDA(CONCATENAR(N" + i + ";REPT(\" \";2));2);REPT(0;8-NÚM.CARACT(SUBSTITUIR(O" + i + ";\",\";\"\")))" +
-                            "&SUBSTITUIR(O" + i + ";\",\";);REPT(0;17-NÚM.CARACT(SUBSTITUIR(P" + i + ";\",\";\"\")))&SUBSTITUIR(P" + i + ";\",\";);REPT(0;17-NÚM.CARACT(SUBSTITUIR(Q" + i + ";\",\";\"\")))&SUBSTITUIR(Q" + i + ";\",\";);REPT(0;17-NÚM.CARACT(SUBSTITUIR(R" + i + ";\",\";\"\")))&SUBSTITUIR(R" + i + ";\",\";);" +
-                            "REPT(0;17-NÚM.CARACT(SUBSTITUIR(S" + i + ";\",\";\"\")))&SUBSTITUIR(S" + i + ";\",\";);REPT(0;17-NÚM.CARACT(SUBSTITUIR(T" + i + ";\",\";\"\")))&SUBSTITUIR(T" + i + ";\",\";);U" + i + ")";
-                    }
-                }
-                i++;
-            }
-        }
-
-        private void GerarBloco4104(ExcelPackage excelPackage, out int i, out string[] titulos)
-        {
-            // Aqui simplesmente adiciono a planilha inicial
-            var sheet11 = excelPackage.Workbook.Worksheets.Add("4.10.4");
-            sheet11.Name = "4.10.4";
-
-            // Títulos
-            i = 1;
-            titulos = new String[] { "1 - Modelo docto", "2 - Série", "3 - Num do dcto", "4 - Dt Emissão", "5 - Nr item" ,
-                "6 - CST PIS", "7 - Alíquota", "8 - Base Calc ", "9 - Vlr Crédito PIS - Receita Exportação", "10 - Vlr Crédito PIS - Receita Mercado interno", "11 - Vlr Crédito PIS - Receita não tributada",
-                "12 - Vlr PIS", "13 - CST COFINS", "14 - Alíq Cofins", "15 - BC Cofins", "16 - Vlr Créd Cofins Receita Exportação", "17 - Vlr Créd Cofins - Receita Mercado interno",
-                "18 - Vlr Créd Cofins Receita não tributada", "19 - Valor Cofins", "20 - Dt Apropriação", "Linha preenchida IN25/10 - 4.10.4"};
-
-            foreach (var titulo in titulos)
-            {
-                sheet11.Cells[1, i++].Value = titulo;
-            }
-
-            i = 2;
-            foreach (string y in C100)
-            {
-                for (int j = 1; j < 22; j++)
-                {
-                    if (j == 1)
-                    {
-                        sheet11.Cells[i, 1].Value = "=SE(E(EXT.TEXTO(\'Bloco C\'!B" + i + ";1;1)=\"0\";EXT.TEXTO(\'Bloco C\'!B" + i + ";2;1)=\"0\";\'Bloco C\'!C" + i + "=\"C170\");EXT.TEXTO(\'Bloco C\'!B" + i + ";3;2))";
-                    }
-                    if (j == 2)
-                    {
-                        sheet11.Cells[i, 2].Value = "=SE(E(EXT.TEXTO(\'Bloco C\'!B" + i + ";1;1)=\"0\";EXT.TEXTO(\'Bloco C\'!B" + i + ";2;1)=\"0\";\'Bloco C\'!C" + i + "=\"C170\");SUBSTITUIR(EXT.TEXTO(\'Bloco C\'!B" + i + ";14;3);\" * \";\"\"))";
-                    }
-                    if (j == 3)
-                    {
-                        sheet11.Cells[i, 3].Value = "=SE(E(EXT.TEXTO(\'Bloco C\'!B" + i + ";1;1)=\"0\";EXT.TEXTO(\'Bloco C\'!B" + i + ";2;1)=\"0\";\'Bloco C\'!C2=\"C170\");EXT.TEXTO(\'Bloco C\'!B" + i + ";5;9))";
-                    }
-                    if (j == 4)
-                    {
-                        sheet11.Cells[i, 4].Value = "=SE(E(EXT.TEXTO(\'Bloco C\'!B" + i + ";1;1)=\"0\";EXT.TEXTO(\'Bloco C\'!B" + i + ";2;1)=\"0\";\'Bloco C\'!C" + i + "=\"C170\");EXT.TEXTO(\'Bloco C\'!B" + i + ";17;8))";
-                    }
-                    if (j == 5)
-                    {
-                        sheet11.Cells[i, 5].Value = "=SE(E(EXT.TEXTO(\'Bloco C\'!B" + i + ";1;1)=\"0\";EXT.TEXTO(\'Bloco C\'!B" + i + ";2;1)=\"0\";\'Bloco C\'!C" + i + "=\"C170\");TEXTO(\'Bloco C\'!D" + i + ";\"000\"))";
-                    }
-                    if (j == 6)
-                    {
-                        sheet11.Cells[i, 6].Value = "=SE(E(EXT.TEXTO(\'Bloco C\'!B" + i + ";1;1)=\"0\";EXT.TEXTO(\'Bloco C\'!B" + i + ";2;1)=\"0\";\'Bloco C\'!C" + i + "=\"C170\");\'Bloco C\'!AA" + i + ")";
-                    }
-                    if (j == 7)
-                    {
-                        sheet11.Cells[i, 7].Value = "=SE(E(EXT.TEXTO(\'Bloco C\'!B" + i + ";1;1)=\"0\";EXT.TEXTO(\'Bloco C\'!B" + i + ";2;1)=\"0\";\'Bloco C\'!C" + i + "=\"C170\");TEXTO(\'Bloco C\'!AC" + i + ";\"#0,0000\"))";
-                    }
-                    if (j == 8)
-                    {
-                        sheet11.Cells[i, 8].Value = "=SE(E(EXT.TEXTO(\'Bloco C\'!B" + i + ";1;1)=\"0\";EXT.TEXTO(\'Bloco C\'!B" + i + ";2;1)=\"0\";\'Bloco C\'!C" + i + "=\"C170\");TEXTO(\'Bloco C\'!AB" + i + ";\"0,000#\"))";
-                    }
-                    if (j == 9)
-                    {
-                        sheet11.Cells[i, 9].Value = "=SE(F" + i + "=\"50\";\"0,00\";SE(E(EXT.TEXTO(\'Bloco C\'!B" + i + ";1;1)=\"0\";EXT.TEXTO(\'Bloco C\'!B" + i + ";2;1)=\"0\";\'Bloco C\'!C" + i + "=\"C170\");TEXTO(L" + i + "*Faturamento!C$7;\"0,00\")))";
-                    }
-                    if (j == 10)
-                    {
-                        sheet11.Cells[i, 10].Value = "=SE(F" + i + "=\"50\";L" + i + ";SE(E(EXT.TEXTO(\'Bloco C\'!B" + i + ";1;1)=\"0\";EXT.TEXTO(\'Bloco C\'!B" + i + ";2;1)=\"0\";\'Bloco C\'!C" + i + "=\"C170\");TEXTO(L" + i + "*Faturamento!C$3;\"0,00\")))";
-                    }
-                    if (j == 11)
-                    {
-                        sheet11.Cells[i, 11].Value = "=SE(F" + i + "=\"50\";\"0,00\";SE(F" + i + "=\"50\";\"0,00\";SE(E(EXT.TEXTO(\'Bloco C\'!B" + i + ";1;1)=\"0\";EXT.TEXTO(\'Bloco C\'!B" + i + ";2;1)=\"0\";\'Bloco C\'!C" + i + "=\"C170\");TEXTO(L" + i + "*Faturamento!C$5;\"0,00\"))))";
-                    }
-                    if (j == 12)
-                    {
-                        sheet11.Cells[i, 12].Value = "=SE(E(EXT.TEXTO(\'Bloco C\'!B" + i + ";1;1)=\"0\";EXT.TEXTO(\'Bloco C\'!B" + i + ";2;1)=\"0\";\'Bloco C\'!C" + i + "=\"C170\");TEXTO(\'Bloco C\'!AF" + i + ";\"#0,00#\"))";
-                    }
-                    if (j == 13)
-                    {
-                        sheet11.Cells[i, 13].Value = "=F2" + i;
-                    }
-                    if (j == 14)
-                    {
-                        sheet11.Cells[i, 14].Value = "=SE(E(EXT.TEXTO(\'Bloco C\'!B" + i + ";1;1)=\"0\";EXT.TEXTO(\'Bloco C\'!B" + i + ";2;1)=\"0\";\'Bloco C\'!C" + i + "=\"C170\");TEXTO(\'Bloco C\'!AI" + i + ";\"#0,0000#\"))";
-                    }
-                    if (j == 15)
-                    {
-                        sheet11.Cells[i, 15].Value = "=H" + i;
-                    }
-                    if (j == 16)
-                    {
-                        sheet11.Cells[i, 16].Value = "=SE(M" + i + "=\"50\";\"0,00\";SE(E(EXT.TEXTO(\'Bloco C\'!B" + i + ";1;1)=\"0\";EXT.TEXTO(\'Bloco C\'!B" + i + ";2;1)=\"0\";\'Bloco C\'!C" + i + "=\"C170\");TEXTO(S" + i + "*Faturamento!C$7;\"0,00\")))";
-                    }
-                    if (j == 17)
-                    {
-                        sheet11.Cells[i, 17].Value = "=SE(M" + i + "=\"50\";S" + i + ";SE(E(EXT.TEXTO(\'Bloco C\'!B" + i + ";1;1)=\"0\";EXT.TEXTO(\'Bloco C\'!B" + i + ";2;1)=\"0\";\'Bloco C\'!C" + i + "=\"C170\");TEXTO(S" + i + "*Faturamento!C$3;\"0,00\")))";
-                    }
-                    if (j == 18)
-                    {
-                        sheet11.Cells[i, 18].Value = "=SE(M" + i + "=\"50\";\"0,00\";SE(E(EXT.TEXTO(\'Bloco C\'!B" + i + ";1;1)=\"0\";EXT.TEXTO(\'Bloco C\'!B" + i + ";2;1)=\"0\";\'Bloco C\'!C" + i + "=\"C170\");TEXTO(S" + i + "*Faturamento!C$5;\"0,00\")))";
-                    }
-                    if (j == 19)
-                    {
-                        sheet11.Cells[i, 19].Value = "=SE(E(EXT.TEXTO(\'Bloco C\'!B" + i + ";1;1)=\"0\";EXT.TEXTO(\'Bloco C\'!B" + i + ";2;1)=\"0\";\'Bloco C\'!C" + i + "=\"C170\");TEXTO(\'Bloco C\'!AL" + i + ";\"#0,00#\"))";
-                    }
-                    if (j == 20)
-                    {
-                        sheet11.Cells[i, 20].Value = "=SE(E(EXT.TEXTO(\'Bloco C\'!B" + i + ";1;1)=\"0\";EXT.TEXTO(\'Bloco C\'!B" + i + ";2;1)=\"0\";\'Bloco C\'!C" + i + "=\"C170\");EXT.TEXTO(\'Bloco C\'!B" + i + ";25;8))";
-                    }
-                    if (j == 21)
-                    {
-                        sheet11.Cells[i, 21].Value = "=CONCATENAR(A" + i + ";ESQUERDA(CONCATENAR(B" + i + ";REPT(\" \";5));5);C" + i + ";D" + i + ";E" + i + ";ESQUERDA(CONCATENAR(F" + i + ";REPT(\" \";2));2);REPT(0;8-NÚM.CARACT(SUBSTITUIR(G" + i + ";\",\";\"\")))&SUBSTITUIR(G" + i + ";\",\";);" +
-                            "REPT(0;17-NÚM.CARACT(SUBSTITUIR(H" + i + ";\",\";\"\")))&SUBSTITUIR(H" + i + ";\",\";);REPT(0;17-NÚM.CARACT(SUBSTITUIR(I" + i + ";\",\";\"\")))&SUBSTITUIR(I" + i + ";\",\";);REPT(0;17-NÚM.CARACT(SUBSTITUIR(J" + i + ";\",\";\"\")))&SUBSTITUIR(J" + i + ";\",\";);" +
-                            "REPT(0;17-NÚM.CARACT(SUBSTITUIR(K" + i + ";\",\";\"\")))&SUBSTITUIR(K" + i + ";\",\";);REPT(0;17-NÚM.CARACT(SUBSTITUIR(L" + i + ";\",\";\"\")))&SUBSTITUIR(L" + i + ";\",\";);ESQUERDA(CONCATENAR(M" + i + ";REPT(\" \";2));2);REPT(0;8-NÚM.CARACT(SUBSTITUIR(N" + i + ";\",\";\"\")))" +
-                            "&SUBSTITUIR(N" + i + ";\",\";);REPT(0;17-NÚM.CARACT(SUBSTITUIR(O" + i + ";\",\";\"\")))&SUBSTITUIR(O" + i + ";\",\";);REPT(0;17-NÚM.CARACT(SUBSTITUIR(P" + i + ";\",\";\"\")))&SUBSTITUIR(P" + i + ";\",\";);REPT(0;17-NÚM.CARACT(SUBSTITUIR(Q" + i + ";\",\";\"\")))&SUBSTITUIR(Q" + i + ";\",\";);" +
-                            "REPT(0;17-NÚM.CARACT(SUBSTITUIR(R" + i + ";\",\";\"\")))&SUBSTITUIR(R" + i + ";\",\";);REPT(0;17-NÚM.CARACT(SUBSTITUIR(S" + i + ";\",\";\"\")))&SUBSTITUIR(S" + i + ";\",\";);T" + i + ")";
-                    }
-                }
-                i++;
-            }
-        }
-
-        private void GerarBloco4103(ExcelPackage excelPackage, out int i, out string[] titulos)
-        {
-            // Aqui simplesmente adiciono a planilha inicial
-            var sheet10 = excelPackage.Workbook.Worksheets.Add("4.10.1");
-            sheet10.Name = "4.10.1";
-
-            // Títulos
-            i = 1;
-            titulos = new String[] { "1 - Modelo docto", "2 - Série", "3 - Num do dcto", "4 - Dt Emissão", "5 - Nr item" ,
-                "6 - CST PIS", "7 - Alíquota", "8 - Base Calc ", "9 - Vlr PIS", "10 - CST Cofins", "11 - Alíq Cofins",
-                "12 - BC Cofins", "13 - Valor Cofins", "14 - Dt Apropriação", "Linha preenchida IN25/10 - 4.10.1"};
-
-            foreach (var titulo in titulos)
-            {
-                sheet10.Cells[1, i++].Value = titulo;
-            }
-
-            i = 2;
-            foreach (string y in C100)
-            {
-                for (int j = 1; j < 16; j++)
-                {
-                    if (j == 1)
-                    {
-                        sheet10.Cells[i, 1].Value = "=SE(E(EXT.TEXTO(\'Bloco C\'!B" + i + ";2;1)=\"1\";\'Bloco C\'!C" + i + "=\"C170\");EXT.TEXTO(\'Bloco C\'!B" + i + ";3;2))";
-                    }
-                    if (j == 2)
-                    {
-                        sheet10.Cells[i, 2].Value = "=SE(E(EXT.TEXTO(\'Bloco C\'!B" + i + ";2;1)=\"1\";\'Bloco C\'!C" + i + "=\"C170\");SUBSTITUIR(EXT.TEXTO(\'Bloco C\'!B" + i + ";14;3);\" * \";\"\"))";
-                    }
-                    if (j == 3)
-                    {
-                        sheet10.Cells[i, 3].Value = "=SE(E(EXT.TEXTO(\'Bloco C\'!B" + i + ";2;1)=\"1\";\'Bloco C\'!C" + i + "=\"C170\");EXT.TEXTO(\'Bloco C\'!B" + i + ";5;9))";
-                    }
-                    if (j == 4)
-                    {
-                        sheet10.Cells[i, 4].Value = "=SE(E(EXT.TEXTO(\'Bloco C\'!B" + i + ";2;1)=\"1\";\'Bloco C\'!C" + i + "=\"C170\");EXT.TEXTO(\'Bloco C\'!B" + i + ";17;8))";
-                    }
-                    if (j == 5)
-                    {
-                        sheet10.Cells[i, 5].Value = "=SE(E(EXT.TEXTO(\'Bloco C\'!B" + i + ";2;1)=\"1\";\'Bloco C\'!C" + i + "=\"C170\");TEXTO(\'Bloco C\'!D" + i + ";\"000\"))";
-                    }
-                    if (j == 6)
-                    {
-                        sheet10.Cells[i, 6].Value = "=SE(E(EXT.TEXTO(\'Bloco C\'!B" + i + ";2;1)=\"1\";\'Bloco C\'!C" + i + "=\"C170\");\'Bloco C\'!AA" + i + ")";
-                    }
-                    if (j == 7)
-                    {
-                        sheet10.Cells[i, 7].Value = "=SE(E(EXT.TEXTO(\'Bloco C\'!B" + i + ";2;1)=\"1\";\'Bloco C\'!C" + i + "=\"C170\");TEXTO(\'Bloco C\'!AC" + i + ";\"#0,0000\"))";
-                    }
-                    if (j == 8)
-                    {
-                        sheet10.Cells[i, 8].Value = "=SE(E(EXT.TEXTO(\'Bloco C\'!B" + i + ";2;1)=\"1\";\'Bloco C\'!C" + i + "=\"C170\");TEXTO(\'Bloco C\'!AB" + i + ";\"0,000#\"))";
-                    }
-                    if (j == 9)
-                    {
-                        sheet10.Cells[i, 9].Value = "=SE(E(EXT.TEXTO(\'Bloco C\'!B" + i + ";2;1)=\"1\";\'Bloco C\'!C" + i + "=\"C170\");TEXTO(\'Bloco C\'!AF" + i + ";\"#0,00#\"))";
-                    }
-                    if (j == 10)
-                    {
-                        sheet10.Cells[i, 10].Value = "=F" + i;
-                    }
-                    if (j == 11)
-                    {
-                        sheet10.Cells[i, 11].Value = "=SE(E(EXT.TEXTO(\'Bloco C\'!B" + i + ";2;1)=\"1\";\'Bloco C\'!C" + i + "=\"C170\");TEXTO(\'Bloco C\'!AI" + i + ";\"#0,0000#\"))";
-                    }
-                    if (j == 12)
-                    {
-                        sheet10.Cells[i, 12].Value = "=H" + i;
-                    }
-                    if (j == 13)
-                    {
-                        sheet10.Cells[i, 13].Value = "=SE(E(EXT.TEXTO(\'Bloco C\'!B" + i + ";2;1)=\"1\";\'Bloco C\'!C" + i + "=\"C170\");TEXTO(\'Bloco C\'!AL" + i + ";\"#0,00#\"))";
-                    }
-                    if (j == 14)
-                    {
-                        sheet10.Cells[i, 14].Value = "=SE(E(EXT.TEXTO(\'Bloco C\'!B" + i + ";2;1)=\"1\";\'Bloco C\'!C" + i + "=\"C170\");EXT.TEXTO(\'Bloco C\'!B" + i + ";25;8))";
-                    }
-                    if (j == 15)
-                    {
-                        sheet10.Cells[i, 15].Value = "=CONCATENAR(A" + i + ";ESQUERDA(CONCATENAR(B" + i + ";REPT(\" \";5));5);C" + i + ";D" + i + ";E" + i + ";ESQUERDA(CONCATENAR(F" + i + ";REPT(\" \";2));2);REPT(0;8-NÚM.CARACT(SUBSTITUIR(G" + i + ";\",\";\"\")))&SUBSTITUIR(G" + i + ";\",\";);REPT(0;17-NÚM.CARACT(SUBSTITUIR(H" + i + ";\",\";\"\")))" +
-                            "&SUBSTITUIR(H" + i + ";\",\";);REPT(0;17-NÚM.CARACT(SUBSTITUIR(I" + i + ";\",\";\"\")))&SUBSTITUIR(I" + i + ";\",\";);ESQUERDA(CONCATENAR(J" + i + ";REPT(\" \";2));2);REPT(0;8-NÚM.CARACT(SUBSTITUIR(K" + i + ";\",\";\"\")))&SUBSTITUIR(K" + i + ";\",\";);REPT(0;17-NÚM.CARACT(SUBSTITUIR(L" + i + ";\",\";\"\")))&SUBSTITUIR(L" + i + ";\",\";);" +
-                            "REPT(0;17-NÚM.CARACT(SUBSTITUIR(M" + i + ";\",\";\"\")))&SUBSTITUIR(M" + i + ";\",\";);N" + i + ")";
-                    }
-
-                }
-                i++;
-            }
-        }
-
-        private void GerarBloco439(ExcelPackage excelPackage, out int i, out string[] titulos)
-        {
-            // Aqui simplesmente adiciono a planilha inicial
-            var sheet9 = excelPackage.Workbook.Worksheets.Add("4.3.9");
-            sheet9.Name = "4.3.9";
-
-            // Títulos
-            i = 1;
-            titulos = new String[] { "1 - Série", "2 - Nr docto", "3 - DT Emissão", "4 - Participante", "5 - Nr item" ,
-                "6 - Código Serviço", "7 - Descrição compl", "8 - Valor do serviço", "9 - Desconto", "10 - Aliq ISS", "11 - Base Calculo ISS",
-                "12 - VL ISS", "Linha preenchida IN25/10 - 4.3.9"};
-
-            foreach (var titulo in titulos)
-            {
-                sheet9.Cells[1, i++].Value = titulo;
-            }
-
-            i = 2;
-            foreach (string y in A100)
-            {
-                for (int j = 1; j < 14; j++)
-                {
-                    if (j == 1)
-                    {
-                        sheet9.Cells[i, 1].Value = "=SE((\'BLOCO A \'!C" + i + "=\"A170\");SUBSTITUIR(EXT.TEXTO(\'BLOCO A \'!B" + i + ";3;3);\" * \";\"\"))";
-                    }
-                    if (j == 2)
-                    {
-                        sheet9.Cells[i, 2].Value = "=SE((\'BLOCO A \'!C" + i + "=\"A170\");EXT.TEXTO(\'BLOCO A \'!B" + i + ";6;9))";
-                    }
-                    if (j == 3)
-                    {
-                        sheet9.Cells[i, 3].Value = "=SE((\'BLOCO A \'!C" + i + "=\"A170\");EXT.TEXTO(\'BLOCO A \'!B" + i + ";15;8))";
-                    }
-                    if (j == 4)
-                    {
-                        sheet9.Cells[i, 4].Value = "=SE((\'BLOCO A \'!C" + i + "=\"A170\");EXT.TEXTO(\'BLOCO A \'!B" + i + ";23;15))";
-                    }
-                    if (j == 5)
-                    {
-                        sheet9.Cells[i, 5].Value = "=SE(\'BLOCO A \'!C" + i + "=\"A170\";TEXTO(\'BLOCO A \'!D" + i + ";\"000\"))";
-                    }
-                    if (j == 6)
-                    {
-                        sheet9.Cells[i, 6].Value = "=SE(\'BLOCO A \'!C" + i + "=\"A170\";\'BLOCO A \'!E" + i + ")";
-                    }
-                    if (j == 8)
-                    {
-                        sheet9.Cells[i, 8].Value = "=SE(\'BLOCO A \'!C" + i + "=\"A170\";TEXTO(\'BLOCO A \'!G" + i + ";\"#0,00#\"))";
-                    }
-                    if (j == 9)
-                    {
-                        sheet9.Cells[i, 9].Value = "=SE(\'BLOCO A \'!C" + i + "=\"A170\";TEXTO(\'BLOCO A \'!H" + i + ";\"#0,00#\"))";
-                    }
-                    if (j == 10)
-                    {
-                        sheet9.Cells[i, 10].Value = "=TEXTO(((L" + i + "/K" + i + ")*100);\"#0,00#\")";
-                    }
-                    if (j == 11)
-                    {
-                        sheet9.Cells[i, 11].Value = "=H" + i;
-                    }
-                    if (j == 12)
-                    {
-                        sheet9.Cells[i, 12].Value = "=SE(\'BLOCO A \'!C" + i + "=\"A170\";TEXTO(\'BLOCO A \'!W" + i + ";\"#0,00#\"))";
-                    }
-                    if (j == 13)
-                    {
-                        sheet9.Cells[i, 13].Value = "=CONCATENAR(ESQUERDA(CONCATENAR(A" + i + ";REPT(\" \"; 5));5);ESQUERDA(CONCATENAR(B" + i + ";REPT(\" \"; 9));9);C" + i + ";ESQUERDA(CONCATENAR(D" + i + ";REPT(\" \"; 14));14);E" + i + ";ESQUERDA(CONCATENAR(F" + i + ";REPT(\" \"; 20));20);" +
-                            "ESQUERDA(CONCATENAR(G" + i + ";REPT(\" \"; 45));45);REPT(0;17-NÚM.CARACT(SUBSTITUIR(H" + i + ";\",\";\"\")))&SUBSTITUIR(H" + i + ";\",\";);REPT(0;17-NÚM.CARACT(SUBSTITUIR(I" + i + ";\",\";\"\")))&SUBSTITUIR(I" + i + ";\",\";);;REPT(0;5-NÚM.CARACT(SUBSTITUIR(J" + i + ";\",\";\"\")))" +
-                            "&SUBSTITUIR(J" + i + ";\",\";);REPT(0;17-NÚM.CARACT(SUBSTITUIR(K" + i + ";\",\";\"\")))&SUBSTITUIR(K" + i + ";\",\";);REPT(0;17-NÚM.CARACT(SUBSTITUIR(L" + i + ";\",\";\"\")))&SUBSTITUIR(L" + i + ";\",\";))";
-                    }
-                }
-                i++;
-            }
-        }
-
-        private void GerarBloco438(ExcelPackage excelPackage, out int i, out string[] titulos)
-        {
-            // Aqui simplesmente adiciono a planilha inicial
-            var sheet8 = excelPackage.Workbook.Worksheets.Add("4.3.8");
-            sheet8.Name = "4.3.8";
-
-            // Títulos
-            i = 1;
-            titulos = new String[] { "1 - Série", "2 - Nr docto", "3 - DT Emissão", "4 - Participante", "5 - Valor do serviço" ,
-                "6 - Desconto", "7 - Aliq IRR", "8 - Base Calculo IRRF", "9 - VL IRRF", "Linha preenchida IN25/10 - 4.3.8"};
-
-            foreach (var titulo in titulos)
-            {
-                sheet8.Cells[1, i++].Value = titulo;
-            }
-
-            i = 2;
-            foreach (string y in A100)
-            {
-                for (int j = 1; j < 11; j++)
-                {
-                    if (j == 1)
-                    {
-                        sheet8.Cells[i, 1].Value = "=SE(\'BLOCO A \'!C" + i + "=\"A100\";SUBSTITUIR(\'BLOCO A\'!H" + i + ";\" * \";\" \"))";
-                    }
-                    if (j == 2)
-                    {
-                        sheet8.Cells[i, 2].Value = "=SE(\'BLOCO A \'!C" + i + "=\"A100\"; TEXTO(\'BLOCO A \'!J" + i + ";\"000000000\"))";
-                    }
-                    if (j == 3)
-                    {
-                        sheet8.Cells[i, 3].Value = "=SE(\'BLOCO A \'!C" + i + "=\"A100\";\'BLOCO A \'!L" + i + ")";
-                    }
-                    if (j == 4)
-                    {
-                        sheet8.Cells[i, 4].Value = "=SE(\'BLOCO A \'!C" + i + "=\"A100\";\'BLOCO A \'!F" + i + ")";
-                    }
-                    if (j == 5)
-                    {
-                        sheet8.Cells[i, 5].Value = "=SE(\'BLOCO A \'!C" + i + "=\"A100\";TEXTO(\'BLOCO A \'!N" + i + ";\"#0,00#\"))";
-                    }
-                    if (j == 6)
-                    {
-                        sheet8.Cells[i, 6].Value = "=SE(\'BLOCO A \'!C" + i + "=\"A100\";TEXTO(\'BLOCO A \'!P" + i + ";\"#0,00#\"))";
-                    }
-                    if (j == 10)
-                    {
-                        sheet8.Cells[i, 10].Value = "=CONCATENAR(ESQUERDA(CONCATENAR(A" + i + ";REPT(\" \"; 5));5);B" + i + ";C" + i + ";ESQUERDA(CONCATENAR(D" + i + ";REPT(\" \"; 14));14);REPT(0;17-NÚM.CARACT(SUBSTITUIR(E" + i + ";\",\";\"\")))&SUBSTITUIR(E" + i + ";\",\";);" +
-                            "REPT(0;17-NÚM.CARACT(SUBSTITUIR(F" + i + ";\",\";\"\")))&SUBSTITUIR(F" + i + ";\",\";);REPT(0;5-NÚM.CARACT(SUBSTITUIR(G" + i + ";\",\";\"\")))&SUBSTITUIR(G" + i + ";\",\";);REPT(0;17-NÚM.CARACT(SUBSTITUIR(H" + i + ";\",\";\"\")))&SUBSTITUIR(H" + i + ";\",\";);REPT(0;17-NÚM.CARACT(SUBSTITUIR(I" + i + ";\",\";\"\")))&SUBSTITUIR(I" + i + ";\",\";))";
-                    }
-                }
-                i++;
-            }
-        }
-
-        private void GerarBloco434(ExcelPackage excelPackage, out int i, out string[] titulos)
-        {
-            // Aqui simplesmente adiciono a planilha inicial
-            var sheet7 = excelPackage.Workbook.Worksheets.Add("4.3.4");
-            sheet7.Name = "4.3.4";
-
-            // Títulos
-            i = 1;
-            titulos = new String[] { "1 - Modelo", "2 - Série", "3 - Nr docto", "4 - DT Emissão", "5 - Participante" ,
-                "6 - Nr item", "7 - Cód Merc/Serv", "8 - Descrição compl", "9 - CFOP", "10 - Cod Nat", "11 - Clas Fisc Merc", "12 - Qtdade", "13 - unid",
-                "14 - Vlr Unit", "15 -Vlr Tot Item", "16 - Desconto", "17 - Ind Trib IPI", "18 - Aliq IPI", "19 - BC IPI", "20 - Vlr IPI", "21 - CST ICMS",
-                "22 - Ind ICMS", "23 - Aliq ICMS", "24 - BC ICMS ", "25 - Vlr ICMS Pr", "26 - BC ICMS ST", "27 -Vlr ICMS ST", "28 - Ind Mov", "29 - CST IPI",
-                "Linha preenchida IN86 - 4.3.4"};
-
-            foreach (var titulo in titulos)
-            {
-                sheet7.Cells[1, i++].Value = titulo;
-            }
-
-
-            i = 2;
-            foreach (string y in C100)
-            {
-                for (int j = 1; j < 31; j++)
-                {
-                    if (j == 1)
-                    {
-                        sheet7.Cells[i, 1].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"1\";\'Bloco C\'!C" + i + "=\"C170\");EXT.TEXTO(\'Bloco C\'!B" + i + ";3;2))";
-                    }
-                    if (j == 2)
-                    {
-                        sheet7.Cells[i, 2].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"1\";\'Bloco C\'!C" + i + "=\"C170\");SUBSTITUIR(EXT.TEXTO(\'Bloco C\'!B" + i + ";14;3);\" * \";\"\"))";
-                    }
-                    if (j == 3)
-                    {
-                        sheet7.Cells[i, 3].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"1\";\'Bloco C\'!C" + i + "=\"C170\");EXT.TEXTO(\'Bloco C\'!B" + i + ";5;9))";
-                    }
-                    if (j == 4)
-                    {
-                        sheet7.Cells[i, 4].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"1\";\'Bloco C\'!C" + i + "=\"C170\");EXT.TEXTO(\'Bloco C\'!B" + i + ";17;8))";
-                    }
-                    if (j == 5)
-                    {
-                        sheet7.Cells[i, 5].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"1\";\'Bloco C\'!C" + i + "=\"C170\");EXT.TEXTO(\'Bloco C\'!B" + i + ";33;14))";
-                    }
-                    if (j == 6)
-                    {
-                        sheet7.Cells[i, 6].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"1\";\'Bloco C\'!C" + i + "=\"C170\");TEXTO(\'Bloco C\'!D" + i + ";\"000\"))";
-                    }
-                    if (j == 7)
-                    {
-                        sheet7.Cells[i, 7].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"1\";\'Bloco C\'!C" + i + "=\"C170\");\'Bloco C\'!E" + i + ")";
-                    }
-                    if (j == 8)
-                    {
-                        sheet7.Cells[i, 8].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"1\";\'Bloco C\'!C" + i + "=\"C170\");SE(\'Bloco C\'!F" + i + "=\"\";\"\";\'Bloco C\'!F" + i + "))";
-                    }
-                    if (j == 9)
-                    {
-                        sheet7.Cells[i, 9].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"1\";\'Bloco C\'!C" + i + "=\"C170\");\'Bloco C\'!M" + i + ")";
-                    }
-                    if (j == 10)
-                    {
-                        sheet7.Cells[i, 10].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"1\";\'Bloco C\'!C" + i + "=\"C170\");\'Bloco C\'!N" + i + ")";
-                    }
-                    if (j == 11)
-                    {
-                        sheet7.Cells[i, 11].Value = "=PROCV(G" + i + ";\'0200\'.A$2:G$20302;7;0)";
-                    }
-                    if (j == 12)
-                    {
-                        sheet7.Cells[i, 12].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"1\";\'Bloco C\'!C" + i + "=\"C170\");TEXTO(\'Bloco C\'!G" + i + ";\"#0,000#\"))";
-                    }
-                    if (j == 13)
-                    {
-                        sheet7.Cells[i, 13].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"1\";\'Bloco C\'!C" + i + "=\"C170\");\'Bloco C\'!H" + i + ")";
-                    }
-                    if (j == 14)
-                    {
-                        sheet7.Cells[i, 14].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"1\";\'Bloco C\'!C" + i + "=\"C170\");TEXTO(\'Bloco C\'!I" + i + "/L" + i + ";\"#,0000\"))";
-                    }
-                    if (j == 15)
-                    {
-                        sheet7.Cells[i, 15].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"1\";\'Bloco C\'!C" + i + "=\"C170\");TEXTO(\'Bloco C\'!I" + i + ";\"#0,00#\"))";
-                    }
-                    if (j == 16)
-                    {
-                        sheet7.Cells[i, 16].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"1\";\'Bloco C\'!C" + i + "=\"C170\");TEXTO(\'Bloco C\'!J" + i + ";\"#0,00#\"))";
-                    }
-                    if (j == 17)
-                    {
-                        sheet7.Cells[i, 17].Value = "=SE(T" + i + "=\"0,00\";\"2\";\"1\")";
-                    }
-                    if (j == 18)
-                    {
-                        sheet7.Cells[i, 18].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"1\";\'Bloco C\'!C" + i + "=\"C170\");TEXTO(\'Bloco C\'!Y" + i + ";\"#0,00#\"))";
-                    }
-                    if (j == 19)
-                    {
-                        sheet7.Cells[i, 19].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"1\";\'Bloco C\'!C" + i + "=\"C170\");TEXTO(\'Bloco C\'!X" + i + ";\"#0,00#\"))";
-                    }
-                    if (j == 20)
-                    {
-                        sheet7.Cells[i, 20].Value = "=SE(E(ESQUERDA('Bloco C\'!B" + i + ";1)=\"1\";\'Bloco C\'!C" + i + "=\"C170\");TEXTO(\'Bloco C\'!Z" + i + ";\"#0,00#\"))";
-                    }
-                    if (j == 21)
-                    {
-                        sheet7.Cells[i, 21].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"1\";\'Bloco C\'!C" + i + "=\"C170\");(TEXTO(\'Bloco C\'!L" + i + ";\"000\")))";
-                    }
-                    if (j == 22)
-                    {
-                        sheet7.Cells[i, 22].Value = "=SE(EXT.TEXTO(U" + i + ";2;1)<\"3\";1;SE(EXT.TEXTO(U" + i + ";2;1)=\"9\";3;SE(EXT.TEXTO(U" + i + ";2;1)=\"7\";1;2)))";
+                        sheet.Cells[i, 22].Value = value[j];
                     }
                     if (j == 23)
                     {
-                        sheet7.Cells[i, 23].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"1\";\'Bloco C\'!C" + i + "=\"C170\");;TEXTO(\'Bloco C\'!P" + i + ";\"#0,00#\"))";
+                        sheet.Cells[i, 23].Value = value[j];
                     }
                     if (j == 24)
                     {
-                        sheet7.Cells[i, 24].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"1\";\'Bloco C\'!C" + i + "=\"C170\");\'Bloco C\'!O" + i + ")";
+                        sheet.Cells[i, 24].Value = value[j];
+
                     }
                     if (j == 25)
                     {
-                        sheet7.Cells[i, 25].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"1\";\'Bloco C\'!C" + i + "=\"C170\");TEXTO(\'Bloco C\'!Q" + i + ";\"#0,00#\"))";
+                        sheet.Cells[i, 25].Value = value[j];
                     }
                     if (j == 26)
                     {
-                        sheet7.Cells[i, 26].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"1\";\'Bloco C\'!C" + i + "=\"C170\");TEXTO(\'Bloco C\'!R" + i + ";\"#0,00#\"))";
+                        sheet.Cells[i, 26].Value = value[j];
                     }
                     if (j == 27)
                     {
-                        sheet7.Cells[i, 27].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"1\";\'Bloco C\'!C" + i + "=\"C170\");TEXTO(\'Bloco C\'!T" + i + ";\"#0,00#\"))";
+                        sheet.Cells[i, 27].Value = value[j];
                     }
                     if (j == 28)
                     {
-                        sheet7.Cells[i, 28].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"1\";\'Bloco C\'!C" + i + "=\"C170\");SE(\'Bloco C\'!K" + i + "=\"0\";\"S\";\"N\"))";
+                        sheet.Cells[i, 28].Value = value[j];
                     }
                     if (j == 29)
                     {
-                        sheet7.Cells[i, 29].Value = "=SE(Q" + i + "=\"1\";\"00\";\"02\")";
-                    }
-                    if (j == 30)
-                    {
-                        sheet7.Cells[i, 30].Value = "=CONCATENAR(A" + i + ";ESQUERDA(CONCATENAR(B+i+;REPT(\" \";5));5);C" + i + ";D" + i + ";ESQUERDA(CONCATENAR(E" + i + ";REPT(\" \";14));14);ESQUERDA(CONCATENAR(F" + i + ";REPT(\" \";3));3);" +
-                            "ESQUERDA(CONCATENAR(G" + i + ";REPT(\" \";20));20);ESQUERDA(CONCATENAR(H" + i + ";REPT(\" \";45));45);I" + i + ";ESQUERDA(CONCATENAR(J" + i + ";REPT(\" \";6));6);ESQUERDA(CONCATENAR(K" + i + ";REPT(\" \";8));8);" +
-                            "REPT(0;17-NÚM.CARACT(SUBSTITUIR(L" + i + ";\",\";\"\")))&SUBSTITUIR(L" + i + ";\",\";);ESQUERDA(CONCATENAR(M" + i + ";REPT(\" \";3));3);REPT(0;17-NÚM.CARACT(SUBSTITUIR(N" + i + ";\",\";\"\")))&SUBSTITUIR(N" + i + ";\",\";);" +
-                            "REPT(0;17-NÚM.CARACT(SUBSTITUIR(O" + i + ";\",\";\"\")))&SUBSTITUIR(O" + i + ";\",\";);REPT(0;17-NÚM.CARACT(SUBSTITUIR(P" + i + ";\",\";\"\")))&SUBSTITUIR(P" + i + ";\",\";);Q" + i + "; REPT(0;5-NÚM.CARACT(SUBSTITUIR(R" + i + ";\",\";\"\")))" +
-                            "&SUBSTITUIR(R" + i + ";\",\";);REPT(0;17-NÚM.CARACT(SUBSTITUIR(S" + i + ";\",\";\"\")))&SUBSTITUIR(S" + i + ";\",\";);REPT(0;17-NÚM.CARACT(SUBSTITUIR(T" + i + ";\",\";\"\")))&SUBSTITUIR(T" + i + ";\",\";);U" + i + ";V" + i + ";" +
-                            "REPT(0;5-NÚM.CARACT(SUBSTITUIR(W" + i + ";\",\";\"\")))&SUBSTITUIR(W" + i + ";\",\";);REPT(0;17-NÚM.CARACT(SUBSTITUIR(X" + i + ";\",\";\"\")))&SUBSTITUIR(X" + i + ";\",\";);REPT(0;17-NÚM.CARACT(SUBSTITUIR(Y" + i + ";\",\";\"\")))" +
-                            "&SUBSTITUIR(Y" + i + ";\",\";);REPT(0;17-NÚM.CARACT(SUBSTITUIR(Z" + i + ";\",\";\"\")))&SUBSTITUIR(Z" + i + ";\",\";);REPT(0;17-NÚM.CARACT(SUBSTITUIR(AA" + i + ";\",\";\"\")))&SUBSTITUIR(AA" + i + ";\",\";);AB" + i + ";" +
-                            "ESQUERDA(CONCATENAR(AC" + i + ";REPT(\" \";2));2))";
+                        sheet.Cells[i, 29].Value = value[j];
                     }
                 }
-                i++;
             }
         }
 
-        private void GerarBloco433(ExcelPackage excelPackage, out int i, out string[] titulos)
+        private void GerarBloco431(ExcelWorksheet sheet, out int i, int num, out string caminho, out string path)
         {
-            // Aqui simplesmente adiciono a planilha inicial
-            var sheet6 = excelPackage.Workbook.Worksheets.Add("4.3.3");
-            sheet6.Name = "4.3.3";
+            // Inicio do bloco 4.3.1 
+            StreamWriter x;
+
+
+            caminho = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            path = caminho + @"\Bloco4.3.1.txt";
+            x = File.CreateText(path);
 
             // Títulos
-            i = 1;
-            titulos = new String[] { "1 - Modelo", "2 - Série", "3 - Nr docto", "4 - DT Emissão", "5 - Participante" ,
-                "6 - DT Entrada", "7 - VL Mercadorias", "8 - Desc", "9 - Vlr Frete", "10 - Vlr Seguro", "11 - Vlr Out Despesas", "12 - Vlr IPI", "13 - Vlr ICMS ST",
-                "14 -Vlr T NF", "15 - IE Sub", "16 - Tipo Fat", "17 - Observ", "18 - Ato Declaratorio", "19 - Mod Doc Ref", "20 - Ser/Sub Doc Ref", "21 - Num Doc Ref",
-                "22 - Data Em Doc Ref", "23 -Part Doc Ref", "Linha preenchida IN86 - 4.3.3"};
-
-            foreach (var titulo in titulos)
-            {
-                sheet6.Cells[1, i++].Value = titulo;
-            }
+            x.WriteLine("|1 - Ind Movto|2 - Modelo|3 - Série|4 - Nr docto|5 - DT Emissão|" +
+                "6 - Participante|7 - DT Entrada|8 - Vl Mercadorias|9 - Desc|10 - Vlr Frete|11 - Vlr Seguro|12 - Vlr Out Despesas|13 - Vlr IPI|" +
+                "14 - Vlr ICMS ST|15 - VlrNF|16 - IE Sub|17 - Via Transp|18 - Código Transp|19 - Qt Vol|20 - Esp Volume|21 - Peso Bruto|" +
+                "22 - Peso Liq|23 - Mod Frete|24 - Ident Veic|25 - Ind Canc|26 - Tipo Fat|27 - Observ|28 - ADE|29 - Mod doc Ref|" +
+                "|30 - Ser Sub|31 - Nr doc ref|32 - DT Emis Ref|33 - Cod Part Ref|Linha preenchida IN86 - 4.3.1|");
 
             i = 2;
+            string calcA, calcB, calcC, calcD, calcE, calcF, calcG, calcH, calcI, calcJ, calcK, calcL, calcM, calcN, calcO, calcW, calcY, calcZ, calcAC, calcAD, calcAE, calcAF, calcAG, calcAH;
+
             foreach (string y in C100)
             {
-                for (int j = 1; j < 25; j++)
+                calcA = "";
+                calcB = "";
+                calcC = "";
+                calcD = "";
+                calcE = "";
+                calcF = "";
+                calcG = "";
+                calcH = "";
+                calcI = "";
+                calcJ = "";
+                calcK = "";
+                calcL = "";
+                calcM = "";
+                calcN = "";
+                calcO = "";
+                calcW = "";
+                calcY = "";
+                calcZ = "";
+                calcAC = "";
+                calcAD = "";
+                calcAE = "";
+                calcAF = "";
+                calcAG = "";
+                calcAH = "";
+                string[] value = y.Split('|');//.Where(x => x != "");
+                CarregaBlocoCSheet40(sheet, i, value);
+                if (sheet.Cells[i, 1].Value != null && sheet.Cells[i, 3].Value != null && sheet.Cells[i, 4].Value != null)
                 {
-                    if (j == 1)
+                    if (sheet.Cells[i, 1].Value.ToString() == "C100" && sheet.Cells[i, 3].Value.ToString() == "0")
                     {
-                        sheet6.Cells[i, 1].Value = "=SE(E(\'Bloco C\'!C" + i + "=\"C100\";\'Bloco C\'!E" + i + "=\"1\");\'Bloco C\'!G" + i + ")";
+                        if (sheet.Cells[i, 4].Value.ToString() == "0")
+                        {
+                            calcA = "E";
+                        }
+                        else
+                        {
+                            calcA = "S";
+                        }
+
+                        if (sheet.Cells[i, 5].Value != null)
+                        {
+                            calcB = sheet.Cells[i, 5].Value.ToString();
+                        }
+                        else
+                        {
+                            calcB = "FALSO";
+                        }
+
+                        if (sheet.Cells[i, 7].Value != null)
+                        {
+                            calcC = sheet.Cells[i, 7].Value.ToString().PadLeft(3, '0');
+                        }
+                        else
+                        {
+                            calcC = "FALSO";
+                        }
+
+                        if (sheet.Cells[i, 8].Value != null)
+                        {
+                            calcD = sheet.Cells[i, 8].Value.ToString().PadLeft(9, '0');
+                        }
+                        else
+                        {
+                            calcD = "FALSO";
+                        }
+
+                        if (sheet.Cells[i, 10].Value.ToString() == "")
+                        {
+                            calcE = "";
+                        }
+                        else
+                        {
+                            calcE = sheet.Cells[i, 10].Value.ToString();
+                        }
+
+                        if (sheet.Cells[i, 4].Value.ToString() == "")
+                        {
+                            calcF = "";
+                        }
+                        else
+                        {
+                            calcF = sheet.Cells[i, 4].Value.ToString().PadRight(14, ' ');
+                        }
+
+                        if (sheet.Cells[i, 11].Value.ToString() == "")
+                        {
+                            calcG = "";
+                        }
+                        else
+                        {
+                            calcG = sheet.Cells[i, 11].Value.ToString();
+                        }
+
+                        if (sheet.Cells[i, 16].Value.ToString() != null)
+                        {
+                            calcH = string.Format(@"{0:f}", sheet.Cells[i, 16].Value.ToString());
+                        }
+                        else
+                        {
+                            calcH = "FALSO";
+                        }
+
+                        if (sheet.Cells[i, 14].Value.ToString() != null)
+                        {
+                            calcI = string.Format(@"{0:f}", sheet.Cells[i, 14].Value.ToString());
+                        }
+                        else
+                        {
+                            calcI = "FALSO";
+                        }
+                        if (sheet.Cells[i, 18].Value.ToString() != "")
+                        {
+                            calcJ = string.Format(@"{0:f}", sheet.Cells[i, 18].Value.ToString());
+                        }
+                        else
+                        {
+                            calcJ = "FALSO";
+                        }
+                        if (sheet.Cells[i, 19].Value.ToString() != "")
+                        {
+                            calcK = string.Format(@"{0:f}", sheet.Cells[i, 19].Value.ToString());
+                        }
+                        else
+                        {
+                            calcK = "FALSO";
+                        }
+                        if (sheet.Cells[i, 20].Value.ToString() != "")
+                        {
+                            calcL = string.Format(@"{0:f}", sheet.Cells[i, 20].Value.ToString());
+                        }
+                        else
+                        {
+                            calcL = "FALSO";
+                        }
+                        if (sheet.Cells[i, 25].Value.ToString() != "")
+                        {
+                            calcM = string.Format(@"{0:f}", sheet.Cells[i, 25].Value.ToString());
+                        }
+                        else
+                        {
+                            calcM = "FALSO";
+                        }
+                        if (sheet.Cells[i, 24].Value.ToString() != "")
+                        {
+                            calcN = string.Format(@"{0:f}", sheet.Cells[i, 24].Value.ToString());
+                        }
+                        else
+                        {
+                            calcN = "FALSO";
+                        }
+                        if (sheet.Cells[i, 12].Value.ToString() != "")
+                        {
+                            calcO = string.Format(@"{0:f}", sheet.Cells[i, 12].Value.ToString());
+                        }
+                        else
+                        {
+                            calcO = "FALSO";
+                        }
+                        if (sheet.Cells[i, 17].Value != null || sheet.Cells[i, 17].Value.ToString() != "")
+                        {
+                            if (sheet.Cells[i, 17].Value.ToString() == "1" || sheet.Cells[i, 17].Value.ToString() == "2" || sheet.Cells[i, 17].Value.ToString() == "9")
+                            {
+                                calcW = "FOB";
+                            }
+                            else
+                            {
+                                calcW = "CIF";
+                            }
+                        }
+                        else
+                        {
+                            calcW = "FALSO";
+                        }
+                        if (sheet.Cells[i, 6].Value.ToString() != "" || sheet.Cells[i, 6].Value != null)
+                        {
+                            if (sheet.Cells[i, 6].Value.ToString() == "02" || sheet.Cells[i, 6].Value.ToString() == "03"
+                                || sheet.Cells[i, 6].Value.ToString() == "04" || sheet.Cells[i, 6].Value.ToString() == "05")
+                            {
+                                calcY = "S";
+                            }
+                            else
+                            {
+                                calcY = "N";
+                            }
+                        }
+                        else
+                        {
+                            calcY = "FALSO";
+                        }
+                        if (sheet.Cells[i, 13].Value.ToString() != "" || sheet.Cells[i, 13].Value != null)
+                        {
+                            if (sheet.Cells[i, 13].Value.ToString() == "0")
+                            {
+                                calcZ = "1";
+                            }
+                            else
+                            {
+                                if (sheet.Cells[i, 13].Value.ToString() == "1")
+                                {
+                                    calcZ = "2";
+                                }
+                                else
+                                {
+                                    calcZ = "";
+                                }
+                            }
+                        }
+                        else
+                        {
+                            calcZ = "FALSO";
+                        }
+                        if (sheet.Cells[i, 38].Value == null)
+                        {
+                            calcAC = "";
+                        }
+                        else
+                        {
+                            calcAC = sheet.Cells[i, 38].Value.ToString();
+                        }
+                        if (sheet.Cells[i, 39].Value == null)
+                        {
+                            calcAD = "";
+                        }
+                        else
+                        {
+                            calcAD = sheet.Cells[i, 39].Value.ToString();
+                        }
+                        if (sheet.Cells[i, 40].Value == null)
+                        {
+                            calcAE = "";
+                        }
+                        else
+                        {
+                            calcAE = sheet.Cells[i, 40].Value.ToString();
+                        }
+                        if (sheet.Cells[i, 41].Value == null)
+                        {
+                            calcAF = "";
+                        }
+                        else
+                        {
+                            calcAF = sheet.Cells[i, 41].Value.ToString();
+                        }
+                        if (sheet.Cells[i, 42].Value == null)
+                        {
+                            calcAG = "";
+                        }
+                        else
+                        {
+                            calcAG = sheet.Cells[i, 42].Value.ToString();
+                        }
                     }
-                    if (j == 2)
+                    else
                     {
-                        sheet6.Cells[i, 2].Value = "=TEXTO(SE(E(\'Bloco C\'!C" + i + "=\"C100\";\'Bloco C\'!E" + i + "=\"1\");SUBSTITUIR(\'Bloco C\'!I" + i + ";\" * \";\"\"));\"000\")";
-                    }
-                    if (j == 3)
-                    {
-                        sheet6.Cells[i, 3].Value = "=SE(E(\'Bloco C\'.C" + i + "=\"C100\";\'Bloco C\'!E" + i + "=\"1\");(TEXTO(\'Bloco C\'!J" + i + ";\"000000000\")))";
-                    }
-                    if (j == 4)
-                    {
-                        sheet6.Cells[i, 4].Value = "=SE(E(\'Bloco C\'!C" + i + "=\"C100\";\'Bloco C\'!E" + i + "=\"1\");SE(\'Bloco C\'!L" + i + "=\"\";\"\";(\'Bloco C\'!L" + i + ")))";
-                    }
-                    if (j == 5)
-                    {
-                        sheet6.Cells[i, 5].Value = "=SE(E(\'Bloco C\'!C" + i + "=\"C100\";\'Bloco C\'!E" + i + "=\"1\");SE(\'Bloco C\'!F" + i + "=\"\";\"\";DIREITA(\'Bloco C\'!F" + i + ";14)))";
-                    }
-                    if (j == 6)
-                    {
-                        sheet6.Cells[i, 6].Value = "=SE(E(\'Bloco C\'!C" + i + "=\"C100\";\'Bloco C\'!E" + i + "=\"1\");SE(\'Bloco C\'!L" + i + "=\"\";\"\";(\'Bloco C\'!M" + i + ")))";
-                    }
-                    if (j == 7)
-                    {
-                        sheet6.Cells[i, 7].Value = "=SE(E(\'Bloco C\'!C" + i + "=\"C100\";\'Bloco C\'!E" + i + "=\"1\");TEXTO(\'Bloco C\'!R" + i + ";\"#0,00#\"))";
-                    }
-                    if (j == 8)
-                    {
-                        sheet6.Cells[i, 8].Value = "=SE(E(\'Bloco C\'!C" + i + "=\"C100\";\'Bloco C\'!E" + i + "=\"1\");TEXTO(\'Bloco C\'!P" + i + ";\"#0,00#\"))";
-                    }
-                    if (j == 9)
-                    {
-                        sheet6.Cells[i, 9].Value = "=SE(E(\'Bloco C\'!C" + i + "=\"C100\";\'Bloco C\'!E" + i + "=\"1\");TEXTO(\'Bloco C\'.T" + i + ";\"#0,00#\"))";
-                    }
-                    if (j == 10)
-                    {
-                        sheet6.Cells[i, 10].Value = "=SE(E(\'Bloco C\'!C" + i + "=\"C100\";\'Bloco C\'!E" + i + "=\"1\");TEXTO(\'Bloco C\'!U" + i + ";\"#0,00#\"))";
-                    }
-                    if (j == 11)
-                    {
-                        sheet6.Cells[i, 11].Value = "=SE(E(\'Bloco C\'!C" + i + "=\"C100\";\'Bloco C\'!E" + i + "=\"1\");TEXTO(\'Bloco C\'!V" + i + ";\"#0,00#\"))";
-                    }
-                    if (j == 12)
-                    {
-                        sheet6.Cells[i, 12].Value = "=SE(E(\'Bloco C\'!C" + i + "=\"C100\";\'Bloco C\'!E" + i + "=\"1\");TEXTO(\'Bloco C\'!AA" + i + ";\"#0,00#\"))";
-                    }
-                    if (j == 13)
-                    {
-                        sheet6.Cells[i, 13].Value = "=SE(E(\'Bloco C\'!C" + i + "=\"C100\";\'Bloco C\'!E" + i + "=\"1\");TEXTO(\'Bloco C\'!Z" + i + ";\"#0,00#\"))";
-                    }
-                    if (j == 14)
-                    {
-                        sheet6.Cells[i, 14].Value = "=SE(E(\'Bloco C\'!C" + i + "=\"C100\";\'Bloco C\'!E" + i + "=\"1\");TEXTO(\'Bloco C\'!N" + i + ";\"#0,00#\"))";
-                    }
-                    if (j == 16)
-                    {
-                        sheet6.Cells[i, 16].Value = "=SE(E(\'Bloco C\'!C" + i + "=\"C100\";\'Bloco C\'!E" + i + "=\"1\");SE(\'Bloco C\'!O" + i + "=\"0\";\"1\";SE(\'Bloco C\'!O" + i + "=\"1\";\"2\";\"\")))";
-                    }
-                    if (j == 19)
-                    {
-                        sheet6.Cells[i, 19].Value = "=SE(E(\'Bloco C\'!C" + i + "=\"C100\";\'Bloco C\'!E" + i + "=\"1\");SE(\'Bloco C\'!AN" + i + "=\"\";\"\";\'Bloco C\'!AN" + i + "))";
-                    }
-                    if (j == 20)
-                    {
-                        sheet6.Cells[i, 20].Value = "=SE(E(\'Bloco C\'!C" + i + "=\"C100\";\'Bloco C\'!E" + i + "=\"1\");SE(\'Bloco C\'!AO" + i + "=\"\";\"\";\'Bloco C\'!AO" + i + "))";
-                    }
-                    if (j == 21)
-                    {
-                        sheet6.Cells[i, 21].Value = "=SE(E(\'Bloco C\'.C" + i + "=\"C100\";\'Bloco C\'!E" + i + "=\"1\");SE(\'Bloco C\'!AP" + i + "=\"\";\"\";\'Bloco C\'!AP" + i + "))";
-                    }
-                    if (j == 22)
-                    {
-                        sheet6.Cells[i, 22].Value = "=SE(E(\'Bloco C\'!C" + i + "=\"C100\";\'Bloco C\'!E" + i + "=\"1\");SE(\'Bloco C\'!AQ" + i + "=\"\";\"\";\'Bloco C\'!AQ" + i + "))";
-                    }
-                    if (j == 23)
-                    {
-                        sheet6.Cells[i, 23].Value = "=SE(E(\'Bloco C\'!C" + i + "=\"C100\";\'Bloco C\'!E" + i + "=\"1\");SE(\'Bloco C\'!AR" + i + "=\"\";\"\";\'Bloco C\'!AR" + i + "))";
-                    }
-                    if (j == 24)
-                    {
-                        sheet6.Cells[i, 24].Value = "=CONCATENAR(A" + i + "; ESQUERDA(CONCATENAR(B" + i + ";REPT(\" \"; 5));5);C" + i + ";ESQUERDA(CONCATENAR(D" + i + ";REPT(\" \"; 8));8);ESQUERDA(CONCATENAR" +
-                            "(E" + i + ";REPT(\" \"; 14));14);ESQUERDA(CONCATENAR(F" + i + ";REPT(\" \"; 8));8);REPT(0;17-NÚM.CARACT(SUBSTITUIR(G" + i + ";\",\";\"\")))&SUBSTITUIR(G" + i + ";\",\";);" +
-                            "REPT(0;17-NÚM.CARACT(SUBSTITUIR(H" + i + ";\",\";\"\")))&SUBSTITUIR(H" + i + ";\",\";);REPT(0;17-NÚM.CARACT(SUBSTITUIR(I" + i + ";\",\";\"\")))&SUBSTITUIR(I" + i + ";\",\";);" +
-                            "REPT(0;17-NÚM.CARACT(SUBSTITUIR(J" + i + ";\",\";\"\")))&SUBSTITUIR(J" + i + ";\",\";);REPT(0;17-NÚM.CARACT(SUBSTITUIR(K" + i + ";\",\";\"\")))&SUBSTITUIR(K" + i + ";\",\";);" +
-                            "REPT(0;17-NÚM.CARACT(SUBSTITUIR(L" + i + ";\",\";\"\")))&SUBSTITUIR(L" + i + ";\",\";);REPT(0;17-NÚM.CARACT(SUBSTITUIR(M" + i + ";\",\";\"\")))&SUBSTITUIR(M" + i + ";\",\";);" +
-                            "REPT(0;17-NÚM.CARACT(SUBSTITUIR(N" + i + ";\",\";\"\")))&SUBSTITUIR(N" + i + ";\",\";); ESQUERDA(CONCATENAR(O" + i + ";REPT(\" \"; 14));14);ESQUERDA(CONCATENAR(P" + i + ";" +
-                            "REPT(\" \"; 1));1);ESQUERDA(CONCATENAR(Q" + i + ";REPT(\" \"; 45));45);ESQUERDA(CONCATENAR(R" + i + ";REPT(\" \"; 50));50);ESQUERDA(CONCATENAR(S" + i + ";REPT(\" \"; 2));2);" +
-                            "ESQUERDA(CONCATENAR(T" + i + ";REPT(\" \"; 5));5);ESQUERDA(CONCATENAR(U" + i + ";REPT(\" \"; 9));9);ESQUERDA(CONCATENAR(V" + i + ";REPT(\" \"; 8));8);ESQUERDA(CONCATENAR" +
-                            "(W" + i + ";REPT(\" \"; 14));14))";
+                        calcA = "FALSO";
+                        calcB = "FALSO";
+                        calcC = "FALSO";
+                        calcD = "FALSO";
+                        calcE = "FALSO";
+                        calcE = "FALSO";
+                        calcF = "FALSO";
+                        calcG = "FALSO";
+                        calcH = "FALSO";
+                        calcI = "FALSO";
+                        calcJ = "FALSO";
+                        calcK = "FALSO";
+                        calcL = "FALSO";
+                        calcM = "FALSO";
+                        calcN = "FALSO";
+                        calcO = "FALSO";
+                        calcW = "FALSO";
+                        calcY = "FALSO";
+                        calcAC = "FALSO";
+                        calcAD = "FALSO";
+                        calcAE = "FALSO";
+                        calcAF = "FALSO";
+                        calcAG = "FALSO";
+                        calcAH = "FALSO";
                     }
                 }
+                else
+                {
+                    calcA = "FALSO";
+                    calcB = "FALSO";
+                    calcC = "FALSO";
+                    calcD = "FALSO";
+                    calcE = "FALSO";
+                    calcE = "FALSO";
+                    calcF = "FALSO";
+                    calcG = "FALSO";
+                    calcH = "FALSO";
+                    calcI = "FALSO";
+                    calcJ = "FALSO";
+                    calcK = "FALSO";
+                    calcL = "FALSO";
+                    calcM = "FALSO";
+                    calcN = "FALSO";
+                    calcO = "FALSO";
+                    calcW = "FALSO";
+                    calcY = "FALSO";
+                    calcAC = "FALSO";
+                    calcAD = "FALSO";
+                    calcAE = "FALSO";
+                    calcAF = "FALSO";
+                    calcAG = "FALSO";
+                    calcAH = "FALSO";
+                }
+
+                if (calcAH != "FALSO")
+                {
+                    calcAH = calcA + calcB + calcC.PadLeft(5, '0') + calcD + calcE.PadLeft(8, '0') + calcF.PadLeft(14, '0')
+                        + calcG.PadLeft(8, '0') + calcH.Length + calcH.Replace(',', ' ') + calcI.Length + calcI.Replace(',', ' ') + calcJ.Length + calcJ.Replace(',', ' ')
+                        + calcK.Length + calcK.Replace(',', ' ') + calcL.Length + calcL.Replace(',', ' ') + calcM.Length + calcM.Replace(',', ' ') + calcN.Length + calcN.Replace(',', ' ')
+                        + calcO.Length + calcO.Replace(',', ' ') + "" + "" + "" + "" + "" + "" + "" + calcW.PadLeft(3, '0') + "" + calcY + calcZ.PadLeft(1, '0')
+                        + "" + "" + calcAC.PadLeft(2, '0') + calcAD.PadLeft(5, '0') + calcAE.Length + calcAE.Replace(',', ' ') + calcAF.Length + calcAF.Replace(',', ' ')
+                        + calcAG.PadLeft(14, '0');
+                }
+
+                x.WriteLine("|" + calcA + "|" + calcB + "|" + calcC + "|" + calcD + "|" + calcE + "|" + calcF + "|" + calcG + "|" + calcH + "|" + calcI + "|" + calcJ + "|" + calcK + "|" + calcL + "|" + calcM + "|" + calcN + "|" + calcO + "|" + calcW + "|" + calcY + "|" + calcZ + "|" + calcAC + "|" + calcAD + "|" + calcAD + "|" + calcAE + "|" + calcAF + "|" + calcAG + "|" + calcAH + "|");
                 i++;
             }
+
         }
 
-        private void GerarBloco432(ExcelPackage excelPackage, out int i, out string[] titulos)
+        private static void CarregaBlocoCSheet40(ExcelWorksheet sheet, int i, string[] value)
         {
-            // Aqui simplesmente adiciono a planilha inicial
-            var sheet5 = excelPackage.Workbook.Worksheets.Add("4.3.2");
-            sheet5.Name = "4.3.2";
-
-            // Títulos
-            i = 1;
-            titulos = new String[] { "1 - Ind Movto", "2 - Modelo", "3 - Série", "4 - Nr docto", "5 - DT Emissão" ,
-                "6 - Nr item", "7 - Cód Merc/Serv", "8 - Descrição compl", "9 - CFOP", "10 - Cod Nat", "11 - Clas Fisc Merc", "12 - Qtdade", "13 - unid",
-                "14 - Vlr Unit", "15 - Vlr Tot Item", "16 - Desconto", "17 - Ind Trib IPI", "18 - Aliq IPI", "19 - BC IPI", "20 - Vlr IPI", "21 - CST ICMS",
-                "22 - Ind ICMS", "23 - Aliq ICMS", "24 - BC ICMS", "25 - Vlr ICMS Pr", "26 - BC ICMS ST", "27 - Vlr ICMS ST", "28 - Ind Mov", "29 - CST IPI",
-                "Linha Preenchida IN86 - 4.3.2"};
-
-            foreach (var titulo in titulos)
+            for (int j = 1; j < value.Count(); j++)
             {
-                sheet5.Cells[1, i++].Value = titulo;
-            }
-
-
-            i = 2;
-            foreach (string y in C100)
-            {
-                for (int j = 1; j < 31; j++)
+                if (value.Length > 31)
                 {
                     if (j == 1)
                     {
-                        sheet5.Cells[i, 1].Value = "= SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"0\";\'Bloco C\'!C" + i + "=\"C170\"); SE(EXT.TEXTO(\'Bloco C\'!B" + i + ";2;1)=\"0\";\"E\";\"S\"))";
-                    }
-                    if (j == 2)
-                    {
-                        sheet5.Cells[i, 2].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"0\";\'Bloco C\'!C" + i + "=\"C170\");EXT.TEXTO(\'Bloco C\'!B" + i + ";3;2))";
+                        sheet.Cells[i, 1].Value = value[j];
                     }
                     if (j == 3)
                     {
-                        sheet5.Cells[i, 3].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"0\";\'Bloco C\'!C" + i + "=\"C170\");SUBSTITUIR(EXT.TEXTO(\'Bloco C\'!B" + i + ";14;3);\" * \";\"\"))";
+                        sheet.Cells[i, 3].Value = value[j];
                     }
-                    if (j == 4)
+                    if (j == 4)//substituindo a mesma linha, corrigir o valor de i
                     {
-                        sheet5.Cells[i, 4].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"0\";\'Bloco C\'!C" + i + "=\"C170\");EXT.TEXTO(\'Bloco C\'!B" + i + ";5;9))";
+                        sheet.Cells[i, 4].Value = value[j];
                     }
                     if (j == 5)
                     {
-                        sheet5.Cells[i, 5].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"0\";\'Bloco C\'!C" + i + "=\"C170\");EXT.TEXTO(\'Bloco C\'!B" + i + ";17;8))";
-                    }
-                    if (j == 6)
-                    {
-                        sheet5.Cells[i, 6].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"0\";\'Bloco C\'!C" + i + "=\"C170\");TEXTO(\'Bloco C\'!D" + i + ";\"000\"))";
+                        sheet.Cells[i, 5].Value = value[j];
                     }
                     if (j == 7)
                     {
-                        sheet5.Cells[i, 7].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"0\";\'Bloco C\'!C" + i + "=\"C170\");\'Bloco C\'!E" + i + ")";
+                        sheet.Cells[i, 7].Value = value[j];
                     }
                     if (j == 8)
                     {
-                        sheet5.Cells[i, 8].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"0\";\'Bloco C\'!C" + i + "=\"C170\");\'Bloco C\'!F" + i + ")";
-                    }
-                    if (j == 9)
-                    {
-                        sheet5.Cells[i, 9].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"0\";\'Bloco C\'!C" + i + "=\"C170\");\'Bloco C\'!M" + i + ")";
+                        sheet.Cells[i, 8].Value = value[j];
                     }
                     if (j == 10)
                     {
-                        sheet5.Cells[i, 10].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"0\";\'Bloco C\'!C" + i + "=\"C170\");\'Bloco C\'!N" + i + ")";
+                        sheet.Cells[i, 10].Value = value[j];
                     }
                     if (j == 11)
                     {
-                        sheet5.Cells[i, 11].Value = "=PROCV(G" + i + ";'0200'!A$2:G$35873;7;FALSO)";
-                    }
-                    if (j == 12)
-                    {
-                        sheet5.Cells[i, 12].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"0\";\'Bloco C\'!C" + i + "=\"C170\");TEXTO(\'Bloco C\'!G" + i + ";\"#0,000#\"))";
-                    }
-                    if (j == 13)
-                    {
-                        sheet5.Cells[i, 13].Value = "=SE(E(ESQUERDA(\'Bloco C\'.B" + i + ";1)=\"0\";\'Bloco C\'.C" + i + "=\"C170\");\'Bloco C\'.H" + i + ")";
-                    }
-                    if (j == 14)
-                    {
-                        sheet5.Cells[i, 14].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"0\";\'Bloco C\'!C" + i + "=\"C170\");TEXTO(\'Bloco C\'!I" + i + "/L" + i + ";\"#,0000\"))";
-                    }
-                    if (j == 15)
-                    {
-                        sheet5.Cells[i, 15].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"0\";\'Bloco C\'!C" + i + "=\"C170\");TEXTO(\'Bloco C\'!I" + i + ";\"#0,00#\"))";
+                        sheet.Cells[i, 11].Value = value[j];
                     }
                     if (j == 16)
                     {
-                        sheet5.Cells[i, 16].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"0\";z'Bloco C\'!C" + i + "=\"C170\");TEXTO(\'Bloco C\'!J" + i + ";\"#0,00#\"))";
+                        sheet.Cells[i, 16].Value = value[j];
                     }
-                    if (j == 17)
+                    if (j == 14)
                     {
-                        sheet5.Cells[i, 17].Value = "=SE(T" + 1 + "=\"0,00\";\"2\";\"1\")";
+                        sheet.Cells[1, 14].Value = value[j];
                     }
                     if (j == 18)
                     {
-                        sheet5.Cells[i, 18].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"0\";\'Bloco C\'!C" + i + "=\"C170\");TEXTO(\'Bloco C\'!Y" + i + ";\"#0,00#\"))";
+                        sheet.Cells[i, 18].Value = value[j];
                     }
                     if (j == 19)
                     {
-                        sheet5.Cells[i, 19].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"0\";\'Bloco C\'!C1=\"C170\");TEXTO(\'Bloco C\'!X" + i + ";\"#0,00#\"))";
+                        sheet.Cells[i, 19].Value = value[j];
                     }
                     if (j == 20)
                     {
-                        sheet5.Cells[i, 20].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"0\";\'Bloco C\'!C" + i + "=\"C170\");TEXTO(\'Bloco C\'!Z" + i + ";\"#0,00#\"))";
+                        sheet.Cells[i, 20].Value = value[j];
                     }
-                    if (j == 21)
+                    if (j == 25)
                     {
-                        sheet5.Cells[i, 21].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"0\";\'Bloco C\'!C" + i + "=\"C170\");\'Bloco C\'!L" + i + ")";
-                    }
-                    if (j == 22)
-                    {
-                        sheet5.Cells[i, 22].Value = "=SE(EXT.TEXTO(U" + i + ";2;1)<\"3\";1;SE(EXT.TEXTO(U" + i + ";2;1)=\"9\";3;SE(EXT.TEXTO(U" + i + ";2;1)=\"7\";1;2)))";
-                    }
-                    if (j == 23)
-                    {
-                        sheet5.Cells[i, 23].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"0\";\'Bloco C\'!C" + i + "=\"C170\");;TEXTO(\'Bloco C\'!P" + i + ";\"#0,00#\"))";
+                        sheet.Cells[i, 25].Value = value[j];
                     }
                     if (j == 24)
                     {
-                        sheet5.Cells[i, 24].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"0\";\'Bloco C\'!C" + i + "=\"C170\");\'Bloco C\'!O" + i + ")";
-                    }
-                    if (j == 25)
-                    {
-                        sheet5.Cells[i, 25].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"0\";\'Bloco C\'!C" + i + "=\"C170\");TEXTO(\'Bloco C\'!Q" + i + ";\"#0,00#\"))";
-                    }
-                    if (j == 26)
-                    {
-                        sheet5.Cells[i, 26].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"0\";\'Bloco C\'!C" + i + "=\"C170\");TEXTO(\'Bloco C\'!R" + i + ";\"#0,00#\"))";
-                    }
-                    if (j == 27)
-                    {
-                        sheet5.Cells[i, 27].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"0\";\'Bloco C\'!C" + i + "=\"C170\");TEXTO(\'Bloco C\'!T" + i + ";\"#0,00#\"))";
-                    }
-                    if (j == 28)
-                    {
-                        sheet5.Cells[i, 28].Value = "=SE(E(ESQUERDA(\'Bloco C\'!B" + i + ";1)=\"0\";\'Bloco C\'!C" + i + "=\"C170\");SE(\'Bloco C\'!K" + i + "=\"0\";\"S\";\"N\"))";
-                    }
-                    if (j == 29)
-                    {
-                        sheet5.Cells[i, 29].Value = "=SE(E(Q" + i + "=\"1\";A" + i + "=\"S\");\"50\";SE(E(Q" + i + "=\"2\";A" + i + "=\"S\");\"52\";SE(E(Q" + i + "=\"1\";A" + i + "=\"E\");\"00\";\"02\")))";
-                    }
-                    if (j == 30)
-                    {
-                        sheet5.Cells[i, 30].Value = "=CONCATENAR(A" + i + ";B" + i + ";ESQUERDA(CONCATENAR(C" + i + ";REPT(\" \";5));5);D" + i + ";E" + i + ";F" + i + ";ESQUERDA(CONCATENAR(G" + i + ";REPT(\" \";20));20);ESQUERDA(CONCATENAR(H" + i + ";" +
-                            "REPT(\" \";45));45);I" + i + ";ESQUERDA(CONCATENAR(J" + i + ";REPT(\" \";6));6);REPT(0;8-NÚM.CARACT(SUBSTITUIR(K" + i + ";\",\";\"\")))&SUBSTITUIR(K" + i + ";\",\";);REPT(0;17-NÚM.CARACT(SUBSTITUIR(L" + i + ";\",\";" +
-                            "\"\")))&SUBSTITUIR(L" + i + ";\",\";);ESQUERDA(CONCATENAR(M" + i + ";REPT(\" \";3));3);REPT(0;17-NÚM.CARACT(SUBSTITUIR(N" + i + ";\",\";\"\")))&SUBSTITUIR(N" + i + ";\",\";);REPT(0;17-NÚM.CARACT(SUBSTITUIR(O" + i + ";\",\";\"\")))" +
-                            "&SUBSTITUIR(O" + i + ";\",\";);REPT(0;17-NÚM.CARACT(SUBSTITUIR(P" + i + ";\",\";\"\")))&SUBSTITUIR(P" + i + ";\",\";);Q" + i + "; REPT(0;5-NÚM.CARACT(SUBSTITUIR(R" + i + ";\",\";\"\")))&SUBSTITUIR(R" + i + ";\",\";);REPT(0;17-NÚM.CARACT" +
-                            "(SUBSTITUIR(S" + i + ";\",\";\"\")))&SUBSTITUIR(S" + i + ";\",\";);REPT(0;17-NÚM.CARACT(SUBSTITUIR(T" + i + ";\",\";\"\")))&SUBSTITUIR(T" + i + ";\",\";);U" + i + ";V" + i + ";REPT(0;5-NÚM.CARACT(SUBSTITUIR(W" + i + ";\",\";\"\")))" +
-                            "&SUBSTITUIR(W" + i + ";\",\";);REPT(0;17-NÚM.CARACT(SUBSTITUIR(X" + i + ";\",\";\"\")))&SUBSTITUIR(X" + i + ";\",\";);REPT(0;17-NÚM.CARACT(SUBSTITUIR(Y" + i + ";\",\";\"\")))&SUBSTITUIR(Y" + i + ";\",\";);REPT(0;17-NÚM.CARACT" +
-                            "(SUBSTITUIR(Z" + i + ";\",\";\"\")))&SUBSTITUIR(Z" + i + ";\",\";);REPT(0;17-NÚM.CARACT(SUBSTITUIR(AA" + i + ";\",\";\"\")))&SUBSTITUIR(AA" + i + ";\",\";);AB" + i + ";ESQUERDA(CONCATENAR(AC" + i + ";REPT(\" \";2));2))";
-                    }
-                }
-                i++;
-            }
-        }
-
-        private void GerarBloco431(ExcelPackage excelPackage, out int i, out string[] titulos)
-        {
-            // Aqui simplesmente adiciono a planilha inicial
-            var sheet4 = excelPackage.Workbook.Worksheets.Add("4.3.1");
-            sheet4.Name = "4.3.1";
-
-            // Títulos
-            i = 1;
-            titulos = new String[] { "1 - Ind Movto", "2 - Modelo", "3 - Série", "4 - Nr docto", "5 - DT Emissão" ,
-                "6 - Participante", "7 - DT Entrada", "8 - Vl Mercadorias", "9 - Desc", "10 - Vlr Frete", "11 - Vlr Seguro", "12 - Vlr Out Despesas", "13 - Vlr IPI",
-                "14 - Vlr ICMS ST", "15 - VlrNF", "16 - IE Sub", "17 - Via Transp", "18 - Código Transp", "19 - Qt Vol", "20 - Esp Volume", "21 - Peso Bruto",
-                "22 - Peso Liq", "23 - Mod Frete", "24 - Ident Veic", "25 - Ind Canc", "26 - Tipo Fat", "27 - Observ", "28 - ADE", "29 - Mod doc Ref",
-                "30 - Ser Sub", "31 - Nr doc ref", "32 - DT Emis Ref",  "33 - Cod Part Ref", "Linha preenchida IN86 - 4.3.1"};
-
-            foreach (var titulo in titulos)
-            {
-                sheet4.Cells[1, i++].Value = titulo;
-            }
-
-            i = 2;
-            foreach (string y in C100)
-            {
-                for (int j = 1; j < 35; j++)
-                {
-                    if (j == 1)
-                    {
-                        sheet4.Cells[i, 1].Value = "=SE(E(\'Bloco C\'!C" + i + "=\"C100\";\'Bloco C\'!E" + i + "=\"0\");SE(\'Bloco C\'!D" + i + "=\"0\";\"E\";\"S\"))";
-                    }
-                    if (j == 2)
-                    {
-                        sheet4.Cells[i, 2].Value = "=SE(E(\'Bloco C\'!C" + i + "=\"C100\";\'Bloco C\'!E" + i + "=\"0\");\'Bloco C\'!G" + i + ")";
-                    }
-                    if (j == 3)
-                    {
-                        sheet4.Cells[i, 3].Value = "=TEXTO(SE(E(\'Bloco C\'!C" + i + "=\"C100\";\'Bloco C\'!E" + i + "=\"0\");SUBSTITUIR(\'Bloco C\'!I" + i + ";\"*\";\"\"));\"000\")";
-                    }
-                    if (j == 4)
-                    {
-                        sheet4.Cells[i, 4].Value = "=SE(E(\'Bloco C\'!C" + i + "=\"C100\";\'Bloco C\'!E" + i + "=\"0\");TEXTO(\'Bloco C\'!J" + i + ";\"000000000\")))";
-                    }
-                    if (j == 5)
-                    {
-                        sheet4.Cells[i, 5].Value = "=SE(E(\'Bloco C\'!C" + i + "=\"C100\";\'Bloco C\'!E" + i + "=\"0\");SE(\'Bloco C\'!L" + i + "=\"\";\"\";(\'Bloco C\'!L" + i + ")))";
-                    }
-                    if (j == 6)
-                    {
-                        sheet4.Cells[i, 6].Value = "=SE(E(\'Bloco C\'!C" + i + "=\"C100\";\'Bloco C\'!E" + i + "=\"0\");SE(\'Bloco C\'!F" + i + "=\"\";\"\";DIREITA(\'Bloco C\'!F" + i + ";14)))";
-                    }
-                    if (j == 7)
-                    {
-                        sheet4.Cells[i, 7].Value = "=SE(E(\'Bloco C\'!C" + i + "=\"C100\";\'Bloco C\'!E" + i + "=\"0\");SE(\'Bloco C\'!M" + i + "=\"\";\"\";(\'Bloco C\'!M" + i + ")))";
-                    }
-                    if (j == 8)
-                    {
-                        sheet4.Cells[i, 8].Value = "=SE(E(\'Bloco C\'!C" + i + "=\"C100\";\'Bloco C\'!E" + i + "=\"0\");TEXTO(\'Bloco C\'!R" + i + ";\"#0,00#\"))";
-                    }
-                    if (j == 9)
-                    {
-                        sheet4.Cells[i, 9].Value = "=SE(E(\'Bloco C\'!C" + i + "=\"C100\";\'Bloco C\'!E" + i + "=\"0\");TEXTO(\'Bloco C\'!P" + i + ";\"#0,00#\"))";
-                    }
-                    if (j == 10)
-                    {
-                        sheet4.Cells[i, 10].Value = "=SE(E(\'Bloco C\'!C" + i + "=\"C100\";\'Bloco C\'!E" + i + "=\"0\");TEXTO(\'Bloco C'!T" + i + ";\"#0,00#\"))";
-                    }
-                    if (j == 11)
-                    {
-                        sheet4.Cells[i, 11].Value = "=SE(E(\'Bloco C\'!C" + i + "=\"C100\";\'Bloco C\'!E" + i + "\"0\");TEXTO(\'Bloco C\'!U" + i + ";\"#0,00#\"))";
+                        sheet.Cells[i, 24].Value = value[j];
                     }
                     if (j == 12)
                     {
-                        sheet4.Cells[i, 12].Value = "=SE(E(\'Bloco C\'!C" + i + "=\"C100\";\'Bloco C\'!E" + i + "\"0\");TEXTO(\'Bloco C\'!V" + i + ";\"#0,00#\"))";
+                        sheet.Cells[i, 12].Value = value[j];
+                    }
+                    if (j == 17)
+                    {
+                        sheet.Cells[i, 17].Value = value[j];
+                    }
+                    if (j == 6)
+                    {
+                        sheet.Cells[i, 6].Value = value[j];
                     }
                     if (j == 13)
                     {
-                        sheet4.Cells[i, 13].Value = "=SE(E(\'Bloco C\'!C" + i + "=\"C100\";\'Bloco C\'!E" + i + "\"0\");TEXTO(\'Bloco C\'!AA" + i + ";\"#0,00#\"))";
+                        sheet.Cells[i, 13].Value = value[j];
+                    }
+                    if (j == 38)
+                    {
+                        sheet.Cells[i, 38].Value = value[j];
+                    }
+                    if (j == 39)
+                    {
+                        sheet.Cells[i, 39].Value = value[j];
+                    }
+                    if (j == 40)
+                    {
+                        sheet.Cells[i, 40].Value = value[j];
+                    }
+                    if (j == 41)
+                    {
+                        sheet.Cells[i, 41].Value = value[j];
+                    }
+                    if (j == 42)
+                    {
+                        sheet.Cells[i, 42].Value = value[j];
+                    }
+                }
+                else
+                {
+                    if (j == 1)
+                    {
+                        sheet.Cells[i, 1].Value = value[j];
+                    }
+                    if (j == 2)
+                    {
+                        sheet.Cells[i, 2].Value = value[j];
+                    }
+                    if (j == 3)
+                    {
+                        sheet.Cells[i, 3].Value = value[j];
+                    }
+                    if (j == 4)//substituindo a mesma linha, corrigir o valor de i
+                    {
+                        sheet.Cells[i, 4].Value = value[j];
+                    }
+                    if (j == 5)
+                    {
+                        sheet.Cells[i, 5].Value = value[j];
+                    }
+                    if (j == 7)
+                    {
+                        sheet.Cells[i, 7].Value = value[j];
+                    }
+                    if (j == 8)
+                    {
+                        sheet.Cells[i, 8].Value = value[j];
+                    }
+                    if (j == 9)
+                    {
+                        sheet.Cells[i, 9].Value = value[j];
+                    }
+                    if (j == 10)
+                    {
+                        sheet.Cells[i, 10].Value = value[j];
+                    }
+                    if (j == 11)
+                    {
+                        sheet.Cells[i, 11].Value = value[j];
+                    }
+                    if (j == 16)
+                    {
+                        sheet.Cells[i, 16].Value = value[j];
                     }
                     if (j == 14)
                     {
-                        sheet4.Cells[i, 14].Value = "=SE(E(\'Bloco C\'!C" + i + "=\"C100\";\'Bloco C\'!E" + i + "=\"0\");TEXTO(\'Bloco C\'!Z" + i + ";\"#0,00#\"))";
+                        sheet.Cells[1, 14].Value = value[j];
                     }
                     if (j == 15)
                     {
-                        sheet4.Cells[i, 15].Value = "=SE(E(\'Bloco C\'!C" + i + "=\"C100\";\'Bloco C\'!E" + i + "=\"0\");TEXTO(\'Bloco C\'!N" + i + ";\"#0,00#\"))";
+                        sheet.Cells[i, 15].Value = value[j];
+                    }
+                    if (j == 18)
+                    {
+                        sheet.Cells[i, 18].Value = value[j];
+                    }
+                    if (j == 19)
+                    {
+                        sheet.Cells[i, 19].Value = value[j];
+                    }
+                    if (j == 20)
+                    {
+                        sheet.Cells[i, 20].Value = value[j];
+                    }
+                    if (j == 21)
+                    {
+                        sheet.Cells[i, 21].Value = value[j];
+                    }
+                    if (j == 22)
+                    {
+                        sheet.Cells[i, 22].Value = value[j];
                     }
                     if (j == 23)
                     {
-                        sheet4.Cells[i, 23].Value = "=SE(E(\'Bloco C\'!C" + i + "=\"C100\";\'Bloco C\'!E" + i + "=\"0\");SE(OU(\'Bloco C\'!S" + i + "=\"1\";\'Bloco C\'!S" + i + "=\"2\";\'Bloco C\'!S" + i + "=\"9\");\"FOB\";\"CIF\"))";
+                        sheet.Cells[i, 23].Value = value[j];
                     }
-                    if (j == 25)
+                    if (j == 4)
+
+                        if (j == 25)
+                        {
+                            sheet.Cells[i, 25].Value = value[j];
+                        }
+                    if (j == 24)
                     {
-                        sheet4.Cells[i, 25].Value = "=SE(E(\'Bloco C\'!C" + i + "=\"C100\";\'Bloco C\'!E" + i + "=\"0\");SE(OU(\'Bloco C\'!H" + i + "=\"02\";\'Bloco C\'!H" + i + "=\"03\";\'Bloco C\'!H" + i + "=\"04\";\'Bloco C\'!H" + i + "=\"05\");\"S\";\"N\"))";
+                        sheet.Cells[i, 24].Value = value[j];
+                    }
+                    if (j == 12)
+                    {
+                        sheet.Cells[i, 12].Value = value[j];
+                    }
+                    if (j == 17)
+                    {
+                        sheet.Cells[i, 17].Value = value[j];
+                    }
+                    if (j == 6)
+                    {
+                        sheet.Cells[i, 6].Value = value[j];
+                    }
+                    if (j == 13)
+                    {
+                        sheet.Cells[i, 13].Value = value[j];
                     }
                     if (j == 26)
                     {
-                        sheet4.Cells[i, 26].Value = "=SE(E(\'Bloco C\'!C" + i + "=\"C100\";\'Bloco C\'!E" + i + "\"0\");SE(\'Bloco C\'!O" + i + "=\"0\";\"1\";SE(\'Bloco C\'!O" + i + "=\"1\";\"2\";\"\")))";
+                        sheet.Cells[i, 26].Value = value[j];
+                    }
+                    if (j == 27)
+                    {
+                        sheet.Cells[i, 27].Value = value[j];
+                    }
+                    if (j == 28)
+                    {
+                        sheet.Cells[i, 28].Value = value[j];
                     }
                     if (j == 29)
                     {
-                        sheet4.Cells[i, 29].Value = "=SE(E(\'Bloco C\'!C" + i + "=\"C100\";\'Bloco C'!E" + i + "=\"0\");SE(\'Bloco C\'!AN" + i + "\"\";\"\";\'Bloco C\'!AN" + i + "))";
+                        sheet.Cells[i, 29].Value = value[j];
                     }
                     if (j == 30)
                     {
-                        sheet4.Cells[i, 30].Value = "=SE(E(\'Bloco C\'!C" + i + "=\"C100\";\'Bloco C\'!E" + i + "=\"0\");SE(\'Bloco C\'!AO" + i + "=\"\";\"\";\'Bloco C\'!AO" + i + "))";
+                        sheet.Cells[i, 30].Value = value[j];
                     }
                     if (j == 31)
                     {
-                        sheet4.Cells[i, 31].Value = "=SE(E(\'Bloco C\'!C" + i + "=\"C100\";\'Bloco C\'!E" + i + "=\"0\");\'Bloco C\'!AP" + i + "=\"\";\"\";\'Bloco C\'!AP" + i + "))";
+                        sheet.Cells[i, 31].Value = value[j];
                     }
-                    if (j == 32)
-                    {
-                        sheet4.Cells[i, 32].Value = "=SE(E(\'Bloco C\'!C" + i + "=\"C100\";\'Bloco C\'!E" + i + "=\"0\");SE(\'Bloco C\'!AQ" + i + "\"\";\"\";\'Bloco C\'!AQ" + i + "))";
-                    }
-                    if (j == 33)
-                    {
-                        sheet4.Cells[i, 33].Value = "=SE(E(\'Bloco C\'!C" + i + "=\"C100\";\'Bloco C\'!E" + i + "=\"0\");SE(\'Bloco C\'!AR" + i + "=\"\";\"\";\'Bloco C\'!AR" + i + "))";
-                    }
-                    if (j == 34)
-                    {
-                        sheet4.Cells[i, 34].Value = "=CONCATENAR(A" + i + ";B" + i + ";ESQUERDA(CONCATENAR(C" + i + ";REPT(\" \";5));5);D" + i + ";ESQUERDA(CONCATENAR(E" + i + ";REPT(\" \";8));8);ESQUERDA(CONCATENAR(F" + i +
-                            ";REPT(\" \";14));14);ESQUERDA(CONCATENAR(G" + i + ";REPT(\" \";8));8);REPT(0;17-NÚM.CARACT(SUBSTITUIR(H" + i + ";\",\";\"\")))&SUBSTITUIR(H" + i + "\",\";\"\");REPT(0;17 - NÚM.CARACT(SUBSTITUIR(I" + i +
-                            ";\",\";\"\")))&SUBSTITUIR(I" + i + ";\",\";);REPT(0;17-NÚM.CARACT(J" + i + ";\",\";\"\")))&SUBSTITUIR(J" + i + ";\",\";);REPT(0;17-NÚM.CARACT(SUBSTITUIR(K" + i + ";\",\";\"\")))&SUBSTITUIR(K" + i + ";\",\";);" +
-                            "REPT(0;17-NÚM.CARACT(L" + i + ";\",\";\"\")))&SUBSTITUIR(L" + i + ";\",\";\"\");REPT(0;17-NÚM.CARACT(SUBSTITUIR(M" + i + ";\",\";\"\")))&SUBSTITUIR(M" + i + ";\",\";);REPT(0;17-NÚM.CARACT(SUBSTITUIR(N" + i + ";" +
-                            "\",\";\"\")))&SUBSTITUIR(N" + i + ";\",\";);REPT(0;17-NÚM.CARACT(SUBSTITUIR(O" + i + ";\",\";\"\")))&SUBSTITUIR(O" + i + ";\",\";);ESQUERDA(CONCATENAR(P" + i + ";REPT(\" \";14))14;);ESQUERDA(CONCATENAR(Q" + i +
-                            ";REPT(\" \";15));15);ESQUERDA(CONCATENAR(R" + i + ";REPT(\" \";14));14);REPT(0;17-NÚM.CARACT(SUBSTITUIR(S" + i + ";\",\";\"\")))&SUBSTITUIR(S" + i + ";\",\";);ESQUERDA(CONCATENAR(T" + i + ";REPT(\" \";10));10);" +
-                            "REPT(0;17-NÚM.CARACT(SUBSTITUIR(U" + i + ";\",\";\"\")))&SUBSTITUIR(U" + i + ";\",\";);REPT(0;17-NÚM.CARACT(SUBSTITUIR(V" + i + ";\",\";\"\")))&SUBSTITUIR(V" + i + ";\",\";);ESQUERDA(CONCATENAR(W" + i + ";REPT(\" \";3)" +
-                            ");3);ESQUERDA(CONCATENAR(X" + i + ";REPT(\" \";15));15);Y" + i + ";ESQUERDA(CONCATENAR(Z" + i + ";REPT(\" \";1));1);ESQUERDA(CONCATENAR(AA" + i + ";REPT(REPT(\" \";45));45);ESQUERDA(CONCATENAR(AB" + i + ";REPT(" +
-                            "\" \";50));50);ESQUERDA(CONCATENAR(AC" + i + ";REPT(\" \";2));2);ESQUERDA(CONCATENAR(AD" + i + ";REPT(\" \";5));5);REPT(0;9-NÚM.CARACT(SUBSTITUIR(AE" + i + ";\",\";\"\")))&SUBSTITUIR(AE" + i + ";\",\";);REPT(0;8-NÚM.CARACT" +
-                            "(SUBSTITUIR(AF" + i + ";\",\";\"\")))&SUBSTITUIR(AF" + i + ";\",\";);ESQUERDA(CONCATENAR(AG" + i + ";REPT(\" \";14));14))";
-                    }
+                    sheet.Cells[i, 32].Value = "";
+                    sheet.Cells[i, 33].Value = "";
+                    sheet.Cells[i, 34].Value = "";
+                    sheet.Cells[i, 35].Value = "";
+                    sheet.Cells[i, 36].Value = "";
+                    sheet.Cells[i, 37].Value = "";
+                    sheet.Cells[i, 38].Value = "";
+                    sheet.Cells[i, 39].Value = "";
+                    sheet.Cells[i, 40].Value = "";
+                    sheet.Cells[i, 41].Value = "";
+                    sheet.Cells[i, 42].Value = "";
+
                 }
-                i++;
             }
         }
 
-        private int GerarBlocoR150(ExcelPackage excelPackage, out int i, int num, out string[] titulos)
+        private void GerarBlocoR0150(out int i, out string caminho, out string path)
         {
-            // Aqui simplesmente adiciono a planilha inicial
-            var sheet3 = excelPackage.Workbook.Worksheets.Add("0150");
-            sheet3.Name = "0150";
+            // Inicio bloco 0150
+            StreamWriter x;
+
+            caminho = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            path = caminho + @"\Bloco0150.txt";
+            x = File.CreateText(path);
 
             // Títulos
-            i = 1;
-            titulos = new String[] { "Registro", "Código", "Razão Social", "Código Pais", "CNPJ" ,
-                "CPF", "IE", "Municipio", "SUFRAMA", "ENDEREÇO", "Numero", "Complemento", "Bairro" };
-            foreach (var titulo in titulos)
-            {
-                sheet3.Cells[1, i++].Value = titulo;
-            }
+            x.WriteLine("|Registro|Código|Razão Social|Código Pais|CNPJ|" +
+                "CPF|IE|Municipio|SUFRAMA|ENDEREÇO|Numero|Complemento|Bairro|");
 
             i = 2;
             //int arrayTotal;
             foreach (string y in R150)
             {
-                num = 0;
-                string[] value = y.Split('|');//.Where(x => x != "");
-                for (int j = 0; j < value.Length; j++)
-                {
-                    if (!value[num].Equals(""))
-                        sheet3.Cells[i, j].Value = value[num];
-
-                    num++;
-                }
+                x.WriteLine(y);
                 i++;
             }
-
-            return num;
         }
 
-        private int GerarBlocoR200(ExcelPackage excelPackage, out int i, int num, out string[] titulos)
+        private void GerarBlocoR0200(ExcelWorksheet sheet, out int i, int num, out string caminho, out string path)
         {
-            // Aqui simplesmente adiciono a planilha inicial
-            var sheet2 = excelPackage.Workbook.Worksheets.Add("0200");
-            sheet2.Name = "0200";
+            // Inicio bloco 0200
+            StreamWriter x;
+
+            caminho = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            path = caminho + @"\Bloco0200.txt";
+            x = File.CreateText(path);
 
             // Títulos
             i = 1;
-            titulos = new String[] { "Código", "", "", "", "" ,
-                "", "NCM", "", "", "", "", "Reg" };
-            foreach (var titulo in titulos)
-            {
-                sheet2.Cells[1, i++].Value = titulo;
-            }
+            x.WriteLine("|Código||||||NCM|||||Reg|");
 
             i = 2;
             foreach (string y in R200)
@@ -1492,125 +2782,238 @@ namespace In86
                     {
                         if (value[num].Equals("0200"))
                         {
-                            sheet2.Cells[i, 12].Value = value[num];
+                            sheet.Cells[i, 12].Value = value[num];
                         }
 
                         if ((value[num].Length == 1 || value[num].Length == 2 ||
                             value[num].Length == 3) && !Regex.IsMatch(value[num], @"^[0-9]+$"))
                         {
-                            sheet2.Cells[i, 5].Value = value[num];
+                            sheet.Cells[i, 5].Value = value[num];
                         }
 
                         if (value[num].Length == 2 && Regex.IsMatch(value[num], @"^[0-9]+$"))
                         {
-                            sheet2.Cells[i, 5].Value = value[num];
+                            sheet.Cells[i, 5].Value = value[num];
                         }
                         if (value[num].Length >= 7)
                         {
                             if (value[num].Length == 8 && Regex.IsMatch(value[num], @"^[0-9]+$"))
                             {
-                                sheet2.Cells[i, 6].Value = value[num];
+                                sheet.Cells[i, 6].Value = value[num];
                             }
                             else
                             {
                                 string[] count = value[num].Split(' ');
                                 if (count.Count() == 1)
                                 {
-                                    sheet2.Cells[i, 1].Value = value[num];
+                                    sheet.Cells[i, 1].Value = value[num];
+                                    calcR200.Add(value[num]);
                                 }
                                 else
                                 {
-                                    sheet2.Cells[i, 2].Value = value[num];
+                                    sheet.Cells[i, 2].Value = value[num];
                                 }
                             }
                         }
+                    }
+
+                    if (sheet.Cells[i, 1].Value != null)
+                    {
+                        x.WriteLine("|" + sheet.Cells[i, 1].Value + "|" + sheet.Cells[i, 2].Value + "|||" + sheet.Cells[i, 5].Value + "|" + sheet.Cells[i, 6].Value + "|" + sheet.Cells[i, 6].Value + "||||||" + sheet.Cells[i, 12].Value + "|");
+                    }
+                    else
+                    {
+                        x.WriteLine("||" + sheet.Cells[i, 2].Value + "|||" + sheet.Cells[i, 5].Value + "|" + sheet.Cells[i, 6].Value + "|" + sheet.Cells[i, 6].Value + "||||||" + sheet.Cells[i, 12].Value + "|");
                     }
                     num++;
                 }
                 i++;
             }
 
-            return num;
         }
 
-        private int GerarBlocoA(ExcelPackage excelPackage, out int i, int num, out string[] titulos)
+        private void GerarBLocoA(ExcelWorksheet sheet, out int i, out int num, string caminho, string path)
         {
-            // Aqui simplesmente adiciono a planilha inicial
-            var sheet1 = excelPackage.Workbook.Worksheets.Add("Bloco A");
-            sheet1.Name = "Bloco A";
+            // Inicio bloco A
+            StreamWriter x;
 
-            // Títulos
-            i = 1;
-            titulos = new String[] { "Código", "Código Geral", "REG", "IND_OPER", "IND_EMIT" ,
-                "COd_PART", "COD_SIT", "SER", "SUB", "NUM_DOC", "CHV_NFSE",
-                "DT_DOC", "DT_EXE_SERV", "VL_DOC", "IND_PGTO", "VL_DESC", "VL_BC_PIS",
-                "VL_PIS", "VL_BC_CONFINS", "VL_PIS_RET", "VL_CONFINS_RE", "VL_ISS" };
 
-            foreach (var titulo in titulos)
-            {
-                sheet1.Cells[1, i++].Value = titulo;
-            }
+            caminho = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            path = caminho + @"\BlocoA.txt";
+            x = File.CreateText(path);
 
+            x.WriteLine("|Código|Código Geral|REG|IND_OPER|IND_EMIT|" +
+                "COd_PART|COD_SIT|SER|SUB|NUM_DOC|CHV_NFSE|" +
+                "DT_DOC|DT_EXE_SERV|VL_DOC|IND_PGTO|VL_DESC|VL_BC_PIS|" +
+                "VL_PIS|VL_BC_CONFINS|VL_PIS_RET|VL_CONFINS_RE|VL_ISS|");
+
+            // Valores
             i = 2;
+            num = 0;
+            string calcA;
+            string calcB;
+
             foreach (string y in A100)
             {
                 num = 0;
                 string[] value = y.Split('|');//.Where(x => x != "");
                 for (int j = 2; j <= value.Count(); j++)
                 {
-                    if (!value[num].Equals(""))
-                    {
-                        sheet1.Cells[i, j].Value = value[num];
-                    }
+                    sheet.Cells[i, j].Value = value[num];
+
                     num++;
                 }
 
-                sheet1.Cells[i, 1].Value = "=SE(C" + i + "=\"A100\";CONCATENAR(E" + i + ";D" + i + ";SE(H" + i + "=\"\"; \" \");(TEXTO(J" + i + "\"000000000\"));L" + i + ";F" + i + ");\"\")";
-                sheet1.Cells[i, 2].Value = "=SE(A" + i + "= \"\";B" + (i - 1) + ";A" + i + ")";
+                calcA = null;
+                calcB = null;
+
+                if (y.Contains("A100"))
+                {
+                    if (sheet.Cells[i, 5].Value != null && sheet.Cells[i, 4].Value != null &&
+                        sheet.Cells[i, 10].Value != null && sheet.Cells[i, 12].Value != null
+                        && sheet.Cells[i, 6].Value != null)
+                    {
+                        if (sheet.Cells[i, 8].Value != null)
+                            calcA = "" + sheet.Cells[i, 5].Value + "" + sheet.Cells[i, 4].Value + "" + sheet.Cells[i, 8].Value + "" + sheet.Cells[i, 10].Value.ToString().PadLeft(9, '0') + "" + sheet.Cells[i, 12].Value + "" + sheet.Cells[i, 6].Value;
+                        else
+                            calcA = "" + sheet.Cells[i, 5].Value + "" + sheet.Cells[i, 4].Value + " " + sheet.Cells[i, 10].Value.ToString().PadLeft(9, '0') + "" + sheet.Cells[i, 12].Value + "" + sheet.Cells[i, 6].Value;
+                    }
+                    else
+                    {
+                        calcA = "";
+                    }
+                }
+                else
+                {
+                    calcA = "";
+                }
+
+                if (calcA != "")
+                {
+                    calcB = calcA;
+                }
+                else
+                {
+                    calcB = "";
+                }
+
+                calcTempB.Add(calcB);
+                x.WriteLine("|" + calcA + "|" + calcB + y);
 
                 i++;
             }
-
-            return num;
         }
 
-        private void GerarBlocoC(ExcelPackage excelPackage, out int i, out string[] titulos, out int num)
+        private void GerarBlocoC(ExcelWorksheet sheet, out int i, out string caminho, out string path)
         {
-            // Aqui simplesmente adiciono a planilha inicial
-            var sheet = excelPackage.Workbook.Worksheets.Add("Bloco C");
-            sheet.Name = "Bloco C";
+            // inicio para criar o bloco C
+            StreamWriter x;
 
-            // Títulos
-            i = 1;
-            titulos = new String[] { "Código", "Código", "1 - Registro", "2 - OPERAÇÃO", "3 - TIPO EMITENTE" ,
-                "4 - PARTICIPANTE", "5 - MODELO NFE", "6 - SITUAÇÃO TRIBUTARIA", "7 - S**ERIE", "8 - NUMERO", "9 - CHAVE NFE",
-                "10 - DT.EMISSÃO", "11 - DT.SAIDA", "12 - VL.TOTAL", "13 - TP.PAGTO", "14 - VL.DESCONTO", "15 - ABATIMENTOS ZFM",
-                "16 - VL.MERCADORIA", "17 - FRETE", "18 - VL.FRETE", "19 - VL.SEGURO", "20 - VL.DESP.ACESS", "21 - VL.BASE ICMS",
-                "22 - VL ICMS", "23 - VL.BASE.ICMS.ST", "24 - VL.ICMS.ST", "25 - VALOR IPI", "26 - VALOR PIS", "27 - VALOR COFINS",
-                "28 - VL.PIS.ST", "29 - VL.COFINS.ST", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40", "41", "42"};
-            foreach (var titulo in titulos)
-            {
-                sheet.Cells[1, i++].Value = titulo;
-            }
+            caminho = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            path = caminho + @"\BlocoC.txt";
+            x = File.CreateText(path);
+
+            x.WriteLine("Código|Código|1 - Registro|2 - OPERAÇÃO|3 - TIPO EMITENTE|" +
+                "4 - PARTICIPANTE|5 - MODELO NFE|6 - SITUAÇÃO TRIBUTARIA|7 - S**ERIE|8 - NUMERO|9 - CHAVE NFE|" +
+                "10 - DT.EMISSÃO|11 - DT.SAIDA|12 - VL.TOTAL|13 - TP.PAGTO|14 - VL.DESCONTO|15 - ABATIMENTOS ZFM|" +
+                "16 - VL.MERCADORIA|17 - FRETE|18 - VL.FRETE|19 - VL.SEGURO|20 - VL.DESP.ACESS|21 - VL.BASE ICMS|" +
+                "22 - VL ICMS|23 - VL.BASE.ICMS.ST|24 - VL.ICMS.ST|25 - VALOR IPI|26 - VALOR PIS|27 - VALOR COFINS|" +
+                "28 - VL.PIS.ST|29 - VL.COFINS.ST|30|31|32|33|34|35|36|37|38|39|40|41|42");
+
 
             // Valores
             i = 2;
-            num = 0;
+            string calcA;
+            string calcB;
+            int count = 0;
             foreach (string y in C100)
             {
-                num = 0;
+                calcA = null;
+                calcB = null;
+
                 string[] value = y.Split('|');//.Where(x => x != "");
                 for (int j = 2; j < value.Count(); j++)
                 {
-                    if (!value[num].Equals(""))
-                    {
-                        sheet.Cells[i, j].Value = value[num];
-                    }
-                    num++;
+                    if (value.Length > 15)
+                        sheet.Cells[i, j].Value = value[j];
+                    else
+                        break;
                 }
 
-                sheet.Cells[i, 1].Value = "=SE(C" + i + "=\"C100\";CONCATENAR(E" + i + ";D" + i + ";G" + i + ";(TEXTO(J" + i + ";\"000000000\"));SE(I" + i + "=\"\";\" \";TEXTO(I" + i + ";\"000\"));L" + i + ";M" + i + ";F" + i + ");\"\")";
-                sheet.Cells[i, 2].Value = "=SE(A" + i + "=\"\";B" + i + ";A" + i + ")";
+                if (value.Length > 15)
+                {
+                    if (sheet.Cells[i, 3].Value != null && sheet.Cells[i, 2].Value != null &&
+                       sheet.Cells[i, 5].Value != null && sheet.Cells[i, 8].Value != null &&
+                       sheet.Cells[i, 7].Value != null && sheet.Cells[i, 10].Value != null &&
+                       sheet.Cells[i, 11].Value != null && sheet.Cells[i, 4].Value != null)
+                    {
+                        if (y.Contains("C100"))
+                        {
+                            if (!string.IsNullOrEmpty(sheet.Cells[i, 7].Value.ToString()))
+                            {
+                                calcA = "" + sheet.Cells[i, 3].Value + "" + sheet.Cells[i, 2].Value + "" +
+                                    sheet.Cells[i, 5].Value + "" + sheet.Cells[i, 8].Value.ToString().PadLeft(9, '0') + "" +
+                                    sheet.Cells[i, 7].Value.ToString().PadLeft(3, '0') + sheet.Cells[i, 10].Value +
+                                    sheet.Cells[i, 11].Value + sheet.Cells[i, 4].Value;
+                            }
+                            else
+                            {
+                                calcA = "" + sheet.Cells[i, 3].Value + "" + sheet.Cells[i, 2].Value + "" +
+                                    sheet.Cells[i, 5].Value + "" + sheet.Cells[i, 8].Value.ToString().PadLeft(9, '0') + "   " +
+                                    sheet.Cells[i, 10].Value + sheet.Cells[i, 11].Value + sheet.Cells[i, 4].Value;
+
+                            }
+                        }
+                        else
+                        {
+                            calcA = "";
+                        }
+                    }
+                    else
+                    {
+                        calcA = "";
+                    }
+
+                    if (calcA != "")
+                    {
+                        calcB = calcA;
+                        count = 0;
+                    }
+                    else
+                    {
+                        if (y.Contains("C100"))
+                        {
+                            count = 0;
+                        }
+                        else
+                        {
+                            count += 1;
+                        }
+                        if (count != 0)
+                        {
+                            if (!string.IsNullOrEmpty(sheet.Cells[i - count, 7].Value.ToString()))
+                            {
+                                calcB = "" + sheet.Cells[i - count, 3].Value + "" + sheet.Cells[i - count, 2].Value + "" +
+                                    sheet.Cells[i - count, 5].Value + "" + sheet.Cells[i - count, 8].Value.ToString().PadLeft(9, '0') + "" +
+                                    sheet.Cells[i - count, 7].Value.ToString().PadLeft(3, '0') + sheet.Cells[i - count, 10].Value +
+                                    sheet.Cells[i - count, 11].Value + sheet.Cells[i - count, 4].Value;
+                            }
+                            else
+                            {
+                                calcB = "" + sheet.Cells[i - count, 3].Value + "" + sheet.Cells[i - count, 2].Value + "" +
+                                    sheet.Cells[i - count, 5].Value + "" + sheet.Cells[i - count, 8].Value.ToString().PadLeft(9, '0') + "   " +
+                                    sheet.Cells[i - count, 10].Value + sheet.Cells[i - count, 11].Value + sheet.Cells[i - count, 4].Value;
+
+                            }
+                            calcTempC.Add(calcB);
+                        }
+                    }
+                    x.WriteLine("|" + calcA + "|" + calcB + y);
+                }
+                else
+                {
+                    count += 1;
+                }
 
                 i++;
             }
@@ -1623,182 +3026,56 @@ namespace In86
             System.IO.StreamReader file =
                 new System.IO.StreamReader(openFileDialog1.FileName);
 
+            int count;
             while ((line = file.ReadLine()) != null)
             {
-                string[] inicioPalavra = line.Split('|');
-                foreach (var X in inicioPalavra)
+                string[] palavra = line.Split('|');
+                count = 0;
+                foreach (var X in palavra)
                 {
-                    if (X.Equals("C100") || X.Equals("C170") || X.Equals("C113") || X.Equals("C120"))
+                    count++;
+                    if (line.Contains("|0000|") && count == 8)
                     {
-                        C100.Add(line);
-                    }
-
-                    if (X.Equals("0150"))
-                    {
-                        R150.Add(line);
-                    }
-
-                    if (X.Equals("A100") || X.Equals("A170") || X.Equals("A120"))
-                    {
-                        A100.Add(line);
-                    }
-
-                    if (X.Equals("0200"))
-                    {
-                        R200.Add(line);
-                    }
-
-                    if (X.Equals("C113"))
-                    {
-                        C113.Add(line);
-                    }
-
-                    if (X.Equals("1100") || X.Equals("1105"))
-                    {
-                        R1100.Add(line);
+                        R0.Add(X);
                     }
                 }
+
+                if (line.Contains("|C100|") || line.Contains("|C170|") || line.Contains("|C113|") || line.Contains("|C120|"))
+                {
+                    C100.Add(line);
+                }
+
+                if (line.Contains("|0150|"))
+                {
+                    R150.Add(line);
+                }
+
+                if (line.Contains("|A100|") || line.Contains("|A170|") || line.Contains("|A120|"))
+                {
+                    A100.Add(line);
+                }
+
+                if (line.Contains("|0200|"))
+                {
+                    R200.Add(line);
+                }
+
+                if (line.Contains("|C113|"))
+                {
+                    C113.Add(line);
+                }
+
+                if (line.Contains("|1100|") || (line.Contains("|1105|")))
+                {
+                    R1100.Add(line);
+                }
+
                 counter++;
             }
-
-            if (txtCarga.Text != "")
-            {
-                System.IO.StreamReader reader =
-                    new System.IO.StreamReader(openFileDialog2.FileName);
-
-                while ((line = reader.ReadLine()) != null)
-                {
-                    string[] inicioPalavra = C100.ToArray();
-                    if (inicioPalavra != null)
-                    {
-                        foreach (var X in inicioPalavra)
-                        {
-                            if (line.Equals(X))
-                                C100.Add(line);
-                        }
-                    }
-                    else
-                    {
-                        string[] verificaPalavra = line.Split('|');
-                        foreach (var X in inicioPalavra)
-                        {
-                            if (X.Equals("C100") || X.Equals("C170") || X.Equals("C113") || X.Equals("C120"))
-                            {
-                                C100.Add(line);
-                            }
-                        }
-                    }
-
-                    inicioPalavra = A100.ToArray();
-                    if (inicioPalavra != null)
-                    {
-                        foreach (var X in inicioPalavra)
-                        {
-                            if (line.Equals(X))
-                                A100.Add(line);
-                        }
-                    }
-                    else
-                    {
-                        string[] verificaPalavra = line.Split('|');
-                        foreach (var X in inicioPalavra)
-                        {
-                            if (X.Equals("A100") || X.Equals("A170") || X.Equals("A120"))
-                            {
-                                A100.Add(line);
-                            }
-                        }
-                    }
-
-                    inicioPalavra = R150.ToArray();
-                    if (inicioPalavra != null)
-                    {
-                        foreach (var X in inicioPalavra)
-                        {
-                            if (line.Equals(X))
-                                R150.Add(line);
-                        }
-                    }
-                    else
-                    {
-                        string[] verificaPalavra = line.Split('|');
-                        foreach (var X in inicioPalavra)
-                        {
-                            if (X.Equals("0150"))
-                            {
-                                R150.Add(line);
-                            }
-                        }
-                    }
-
-
-                    inicioPalavra = R200.ToArray();
-                    if (inicioPalavra != null)
-                    {
-                        foreach (var X in inicioPalavra)
-                        {
-                            if (line.Equals(X))
-                                R200.Add(line);
-                        }
-                    }
-                    else
-                    {
-                        string[] verificaPalavra = line.Split('|');
-                        foreach (var X in inicioPalavra)
-                        {
-                            if (X.Equals("0200"))
-                            {
-                                R200.Add(line);
-                            }
-                        }
-                    }
-
-                    inicioPalavra = C113.ToArray();
-                    if (inicioPalavra != null)
-                    {
-                        foreach (var X in inicioPalavra)
-                        {
-                            if (line.Equals(X))
-                                C113.Add(line);
-                        }
-                    }
-                    else
-                    {
-                        string[] verificaPalavra = line.Split('|');
-                        foreach (var X in inicioPalavra)
-                        {
-                            if (X.Equals("C113"))
-                            {
-                                C113.Add(line);
-                            }
-                        }
-                    }
-
-                    inicioPalavra = R1100.ToArray();
-                    if (inicioPalavra != null)
-                    {
-                        foreach (var X in inicioPalavra)
-                        {
-                            if (line.Equals(X))
-                                R1100.Add(line);
-                        }
-                    }
-                    else
-                    {
-                        string[] verificaPalavra = line.Split('|');
-                        foreach (var X in inicioPalavra)
-                        {
-                            if (X.Equals("1100") || X.Equals("1105"))
-                            {
-                                R1100.Add(line);
-                            }
-                        }
-                    }
-                }
-
-                reader.Close();
-            }
             file.Close();
+
+            MessageBox.Show("Carregamento finalizado, favor carregar o arquivo do PIS Confins!", "Carregamento Concluido", MessageBoxButtons.OK);
+
             return line;
         }
 
@@ -1827,5 +3104,85 @@ namespace In86
                 arquivo1 = openFileDialog2.FileName;
             }
         }
+
+        private void btnCarregar_Click(object sender, EventArgs e)
+        {
+            int counter = 0;
+            string line;
+
+            line = CarregaListaDados(ref counter);
+
+            txtArquivo.Enabled = true;
+            btnSearch1.Enabled = true;
+            carregado = true;
+        }
+
+        private void btnLoadArch_Click(object sender, EventArgs e)
+        {
+            string line;
+            // Read the file and display it line by line.  
+            System.IO.StreamReader file =
+                new System.IO.StreamReader(openFileDialog2.FileName);
+
+            bool range = false;
+
+            for (int i = 0; i < R0.Count; i++)
+            {
+                while ((line = file.ReadLine()) != null)
+                {
+
+                    if (range)
+                    {
+                        if (line.Contains("|C100|") || line.Contains("|C170|") || line.Contains("|C113|") || line.Contains("|C120|"))
+                        {
+                            C100.Add(line);
+                        }
+
+                        if (line.Contains("|0150|"))
+                        {
+                            R150.Add(line);
+                        }
+
+                        if (line.Contains("|A100|") || line.Contains("|A170|") || line.Contains("|A120|"))
+                        {
+                            A100.Add(line);
+                        }
+
+                        if (line.Contains("|0200|"))
+                        {
+                            R200.Add(line);
+                        }
+
+                        if (line.Contains("|C113|"))
+                        {
+                            C113.Add(line);
+                        }
+
+                        if (line.Contains("|1100|") || (line.Contains("|1105|")))
+                        {
+                            R1100.Add(line);
+                        }
+
+                        if (line.Contains("|A010|") || line.Contains("|C010|"))
+                        {
+                            range = false;
+                            continue;
+                        }
+
+                    }
+
+                    if (line.Contains("|A010|" + R0[i] + "|") || line.Contains("|C010|" + R0[i] + "|"))
+                    {
+                        range = true;
+                    }
+                }
+            }
+
+            file.Close();
+            
+            MessageBox.Show("Carregamento finalizado, favor Realizar a conversão dos dados!", "Carregamento Concluido", MessageBoxButtons.OK);
+            carregadoPis = true;
+        }
+
     }
 }
