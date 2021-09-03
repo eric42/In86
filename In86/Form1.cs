@@ -13,6 +13,7 @@ using System.Windows.Forms;
 using excel = Microsoft.Office.Interop.Excel;
 using LicenseContext = OfficeOpenXml.LicenseContext;
 using Microsoft.VisualBasic;
+using System.Diagnostics;
 
 namespace In86
 {
@@ -72,66 +73,96 @@ namespace In86
 
         private void btnConverter_Click(object sender, EventArgs e)
         {
-            RemoveDuplicada();
-
-            if (carregado && carregadoPis)
+            try
             {
-                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+                RemoveDuplicada();
 
-                using (var excelPackage = new ExcelPackage())
+                if (carregado && carregadoPis)
                 {
-                    excelPackage.Workbook.Properties.Title = "IN86";
-                    var sheet = excelPackage.Workbook.Worksheets.Add("Bloco A");
+                    ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
-                    int i, num;
+                    using (var excelPackage = new ExcelPackage())
+                    {
+                        excelPackage.Workbook.Properties.Title = "IN86";
+                        var sheet = excelPackage.Workbook.Worksheets.Add("Bloco A");
 
-                    string caminho, path;
+                        int i, num;
 
-                    float calcFatValRBNCT, calcFatValRBNCNT, calcFatValRBNCE, calcIndRBNCT, calcIndRBNCNT, calcIndRBNCE, calcFatValTotal, calcFacIndTotal, calcPercIndRBNCT, calcPercIndRBNCNT, calcPercIndRBNCE;
+                        string caminho, path;
 
-                    CalculoFaturamento(out calcFatValRBNCT, out calcFatValRBNCNT, out calcFatValRBNCE, out calcIndRBNCT, out calcIndRBNCNT, out calcIndRBNCE, out calcFatValTotal, out calcFacIndTotal, out calcPercIndRBNCT, out calcPercIndRBNCNT, out calcPercIndRBNCE);
+                        float calcFatValRBNCT, calcFatValRBNCNT, calcFatValRBNCE, calcIndRBNCT, calcIndRBNCNT, calcIndRBNCE, calcFatValTotal, calcFacIndTotal, calcPercIndRBNCT, calcPercIndRBNCNT, calcPercIndRBNCE;
 
-                    GerarBlocoC(sheet, out i, out caminho, out path);
+                        CalculoFaturamento(out calcFatValRBNCT, out calcFatValRBNCNT, out calcFatValRBNCE, out calcIndRBNCT, out calcIndRBNCNT, out calcIndRBNCE, out calcFatValTotal, out calcFacIndTotal, out calcPercIndRBNCT, out calcPercIndRBNCNT, out calcPercIndRBNCE);
 
-                    GerarBLocoA(sheet, out i, out num, caminho, path);
+                        GerarBlocoC(sheet, out i, out caminho, out path);
 
-                    GerarBlocoR0200(sheet, out i, num, out caminho, out path);
+                        GerarBLocoA(sheet, out i, out num, caminho, path);
 
-                    GerarBlocoR0150(out i, out caminho, out path);
+                        GerarBlocoR0200(sheet, out i, num, out caminho, out path);
 
-                    //revisar os campos
-                    GerarBloco431(sheet, out i, num, out caminho, out path);
+                        GerarBlocoR0150(out i, out caminho, out path);
 
-                    GerarBloco432(sheet, out i, out caminho, out path);
+                        //revisar os campos
+                        GerarBloco431(sheet, out i, num, out caminho, out path);
 
-                    GerarBloco433(sheet, out i, out caminho, out path);
+                        GerarBloco432(sheet, out i, out caminho, out path);
 
-                    GerarBloco434(sheet, out i, out caminho, out path);
+                        GerarBloco433(sheet, out i, out caminho, out path);
 
-                    GerarBloco438(sheet, out i, out caminho, out path);
+                        GerarBloco434(sheet, out i, out caminho, out path);
 
-                    GerarBloco439(sheet, out i, out caminho, out path);
+                        GerarBloco438(sheet, out i, out caminho, out path);
 
-                    GerarBloco4101(sheet, out i, out caminho, out path);
+                        GerarBloco439(sheet, out i, out caminho, out path);
 
-                    GerarBLoco4104(sheet, out i, out caminho, out path, calcIndRBNCT, calcIndRBNCNT, calcIndRBNCE);
+                        GerarBloco4101(sheet, out i, out caminho, out path);
 
-                    GerarBloco4105(sheet, out i, out caminho, out path, calcIndRBNCT, calcIndRBNCNT, calcIndRBNCE, calcPercIndRBNCT);
+                        GerarBLoco4104(sheet, out i, out caminho, out path, calcIndRBNCT, calcIndRBNCNT, calcIndRBNCE);
 
-                    GerarBloco4106(sheet, out i, out caminho, out path, calcIndRBNCT, calcIndRBNCNT, calcIndRBNCE);
+                        GerarBloco4105(sheet, out i, out caminho, out path, calcIndRBNCT, calcIndRBNCNT, calcIndRBNCE, calcPercIndRBNCT);
 
-                    GerarBloco1CE(sheet, out i, out num, out caminho, out path);
+                        GerarBloco4106(sheet, out i, out caminho, out path, calcIndRBNCT, calcIndRBNCNT, calcIndRBNCE);
 
-                    GerarBloco441(sheet, out i, num, out caminho, out path);
+                        GerarBloco1CE(sheet, out i, out num, out caminho, out path);
 
-                    GerarBloco442(sheet, out i, num, out caminho, out path);
+                        GerarBloco441(sheet, out i, num, out caminho, out path);
 
-                    MessageBox.Show("Concluído. Verifique em " + Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));
+                        GerarBloco442(sheet, out i, num, out caminho, out path);
+
+                        MessageBox.Show("Concluído. Verifique em " + Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));
+                    }
                 }
+                else
+                {
+                    MessageBox.Show("Favor carregar os dados para dar inicio ao processo de conversão", "Aviso", MessageBoxButtons.OK);
+                }
+
             }
-            else
+            catch (System.Exception ex)
             {
-                MessageBox.Show("Favor carregar os dados para dar inicio ao processo de conversão", "Aviso", MessageBoxButtons.OK);
+                StackTrace stackTrace = new StackTrace(true);
+
+                string caminho = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+
+                //Como tem apenas um erro segue a ideia de array começando em 0 por isso o Framecount -1 se você for trabalhar com mais de um erro precisará ajustar esse trecho
+                var stFrame = stackTrace.GetFrame(stackTrace.FrameCount - 1);
+                string WriteLine = ($"Método: {stFrame.GetMethod().Name} \r\nArquivo: {stFrame.GetFileName()} \r\nLinha: {stFrame.GetFileLineNumber()} \r\nErro: {ex.Message}");
+
+                string caminhoArquivo = Path.Combine(caminho, "LogErro.txt");
+
+                if (!File.Exists(caminhoArquivo))
+                {
+                    FileStream arquivo = File.Create(caminhoArquivo);
+                    arquivo.Close();
+                }
+
+                using (StreamWriter w = File.AppendText(caminhoArquivo))
+                {
+                    w.WriteLine(WriteLine, w);
+                }
+
+                MessageBox.Show("Um erro ocorreu, verifique o log gerado no caminho: " + caminhoArquivo, "Aviso", MessageBoxButtons.OK);
+
             }
         }
 
@@ -492,6 +523,8 @@ namespace In86
                             calcT = string.Format(@"{0:f}", (sheet.Cells[i, 36].Value.ToString() == "" ? "0,00" : sheet.Cells[i, 36].Value).ToString());
                             calcU = calcTempC[countTemp].Substring(25, 8);
 
+                            countTemp++;
+
                         }
 
                         calcN = calcG;
@@ -573,7 +606,6 @@ namespace In86
                             }
                         }
 
-                        countTemp++;
 
                         calcV = calcA + calcB.PadLeft(5, ' ') + calcC + calcD + calcE.PadLeft(14, ' ') + calcF + calcG.PadLeft(2, ' ') + calcH.Replace(',', ' ') + calcI.Replace(',', ' ') +
                             calcJ.Replace(',', ' ') + calcK.Replace(',', ' ') + calcL.Replace(',', ' ') + calcM.Replace(',', ' ') + calcN.Replace(',', ' ') + calcO.Replace(',', ' ') + calcP.Replace(',', ' ') +
@@ -650,6 +682,9 @@ namespace In86
                             calcF = sheet.Cells[i, 25].Value.ToString();
                             calcG = string.Format(@"{0:0,0000}", (sheet.Cells[i, 27].Value ?? "0,0000").ToString());
                             calcH = string.Format(@"{0:0,0000}", (sheet.Cells[i, 26].Value ?? "0,0000").ToString());
+
+                            countTemp++;
+
                         }
 
                         calcM = calcF;
@@ -742,7 +777,6 @@ namespace In86
                                 calcQ = string.Format(@"{0:f}", float.Parse(calcS) * calcIndRBNCT);
                             }
                         }
-                        countTemp++;
 
                         calcU = calcA + calcB.PadLeft(5, ' ') + calcC + calcD + calcE + calcF.PadLeft(2, ' ') + calcG.Replace(',', ' ') + calcH.Replace(',', ' ') + calcI.Replace(',', ' ') +
                             calcJ.Replace(',', ' ') + calcK.Replace(',', ' ') + calcL.Replace(',', ' ') + calcM.PadLeft(2, ' ') + calcN.Replace(',', ' ') + calcO.Replace(',', ' ') + calcP.Replace(',', ' ') +
@@ -826,7 +860,6 @@ namespace In86
                         {
                             calcA = calcTempC[countTemp].Substring(2, 2);
                             calcB = calcTempC[countTemp].Substring(14, 3);
-                            calcC = calcTempC[countTemp].Substring(5, 9);
                             calcD = calcTempC[countTemp].Substring(17, 8);
                             calcE = string.IsNullOrEmpty(sheet.Cells[i, 2].Value.ToString()) ? sheet.Cells[i, 2].Value.ToString().PadLeft(3, '0') : "000";
                             calcF = sheet.Cells[i, 25].Value.ToString();
@@ -836,13 +869,12 @@ namespace In86
                             calcK = string.Format(@"{0:0,0000}", (sheet.Cells[i, 33].Value ?? "0,0000").ToString());
                             calcM = string.Format(@"{0:f}", (sheet.Cells[i, 36].Value ?? "0,00").ToString());
                             calcN = calcTempC[countTemp].Substring(25, 8);
-
+                            countTemp++;
                         }
 
                         calcJ = calcF;
                         calcL = calcH;
 
-                        countTemp++;
 
                         calcO = calcA + calcB.PadLeft(5, ' ') + calcC + calcD + calcE + calcF.PadLeft(2, ' ') + calcG.Replace(',', ' ') + calcH.Replace(',', ' ') + calcI.Replace(',', ' ') + calcJ.Replace(',', ' ') +
                             calcK.Replace(',', ' ') + calcL.Replace(',', ' ') + calcM.Replace(',', ' ') + calcN;
@@ -2521,6 +2553,7 @@ namespace In86
 
         private void GerarBlocoC(ExcelWorksheet sheet, out int i, out string caminho, out string path)
         {
+
             // inicio para criar o bloco C
             StreamWriter x;
 
