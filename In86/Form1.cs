@@ -32,6 +32,7 @@ namespace In86
         List<string> R1100 = new List<string>();
         List<string> R0 = new List<string>();
         List<string> C100Temp = new List<string>();
+        List<string> C170Temp = new List<string>();
         public bool carregado = false;
         public bool carregadoPis = false;
 
@@ -73,97 +74,97 @@ namespace In86
 
         private void btnConverter_Click(object sender, EventArgs e)
         {
-            try
+            //try
+            //{
+            RemoveDuplicada();
+
+            if (carregado && carregadoPis)
             {
-                RemoveDuplicada();
+                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
-                if (carregado && carregadoPis)
+                using (var excelPackage = new ExcelPackage())
                 {
-                    ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+                    excelPackage.Workbook.Properties.Title = "IN86";
+                    var sheet = excelPackage.Workbook.Worksheets.Add("Bloco A");
 
-                    using (var excelPackage = new ExcelPackage())
-                    {
-                        excelPackage.Workbook.Properties.Title = "IN86";
-                        var sheet = excelPackage.Workbook.Worksheets.Add("Bloco A");
+                    int i, num;
+                    //GeraC170NrDocumento();
+                    string caminho, path;
 
-                        int i, num;
+                    float calcFatValRBNCT, calcFatValRBNCNT, calcFatValRBNCE, calcIndRBNCT, calcIndRBNCNT, calcIndRBNCE, calcFatValTotal, calcFacIndTotal, calcPercIndRBNCT, calcPercIndRBNCNT, calcPercIndRBNCE;
 
-                        string caminho, path;
+                    CalculoFaturamento(out calcFatValRBNCT, out calcFatValRBNCNT, out calcFatValRBNCE, out calcIndRBNCT, out calcIndRBNCNT, out calcIndRBNCE, out calcFatValTotal, out calcFacIndTotal, out calcPercIndRBNCT, out calcPercIndRBNCNT, out calcPercIndRBNCE);
 
-                        float calcFatValRBNCT, calcFatValRBNCNT, calcFatValRBNCE, calcIndRBNCT, calcIndRBNCNT, calcIndRBNCE, calcFatValTotal, calcFacIndTotal, calcPercIndRBNCT, calcPercIndRBNCNT, calcPercIndRBNCE;
+                    GerarBlocoC(sheet, out i, out caminho, out path);
 
-                        CalculoFaturamento(out calcFatValRBNCT, out calcFatValRBNCNT, out calcFatValRBNCE, out calcIndRBNCT, out calcIndRBNCNT, out calcIndRBNCE, out calcFatValTotal, out calcFacIndTotal, out calcPercIndRBNCT, out calcPercIndRBNCNT, out calcPercIndRBNCE);
+                    GerarBLocoA(sheet, out i, out num, caminho, path);
 
-                        GerarBlocoC(sheet, out i, out caminho, out path);
+                    GerarBlocoR0200(sheet, out i, num, out caminho, out path);
 
-                        GerarBLocoA(sheet, out i, out num, caminho, path);
+                    GerarBlocoR0150(out i, out caminho, out path);
 
-                        GerarBlocoR0200(sheet, out i, num, out caminho, out path);
+                    //revisar os campos
+                    GerarBloco431(sheet, out i, num, out caminho, out path);
 
-                        GerarBlocoR0150(out i, out caminho, out path);
+                    GerarBloco432(sheet, out i, out caminho, out path);
 
-                        //revisar os campos
-                        GerarBloco431(sheet, out i, num, out caminho, out path);
+                    GerarBloco433(sheet, out i, out caminho, out path);
 
-                        GerarBloco432(sheet, out i, out caminho, out path);
+                    GerarBloco434(sheet, out i, out caminho, out path);
 
-                        GerarBloco433(sheet, out i, out caminho, out path);
+                    GerarBloco438(sheet, out i, out caminho, out path);
 
-                        GerarBloco434(sheet, out i, out caminho, out path);
+                    GerarBloco439(sheet, out i, out caminho, out path);
 
-                        GerarBloco438(sheet, out i, out caminho, out path);
+                    GerarBloco4101(sheet, out i, out caminho, out path);
 
-                        GerarBloco439(sheet, out i, out caminho, out path);
+                    GerarBLoco4104(sheet, out i, out caminho, out path, calcIndRBNCT, calcIndRBNCNT, calcIndRBNCE);
 
-                        GerarBloco4101(sheet, out i, out caminho, out path);
+                    GerarBloco4105(sheet, out i, out caminho, out path, calcIndRBNCT, calcIndRBNCNT, calcIndRBNCE, calcPercIndRBNCT);
 
-                        GerarBLoco4104(sheet, out i, out caminho, out path, calcIndRBNCT, calcIndRBNCNT, calcIndRBNCE);
+                    GerarBloco4106(sheet, out i, out caminho, out path, calcIndRBNCT, calcIndRBNCNT, calcIndRBNCE);
 
-                        GerarBloco4105(sheet, out i, out caminho, out path, calcIndRBNCT, calcIndRBNCNT, calcIndRBNCE, calcPercIndRBNCT);
+                    GerarBloco1CE(sheet, out i, out num, out caminho, out path);
 
-                        GerarBloco4106(sheet, out i, out caminho, out path, calcIndRBNCT, calcIndRBNCNT, calcIndRBNCE);
+                    GerarBloco441(sheet, out i, num, out caminho, out path);
 
-                        GerarBloco1CE(sheet, out i, out num, out caminho, out path);
+                    GerarBloco442(sheet, out i, num, out caminho, out path);
 
-                        GerarBloco441(sheet, out i, num, out caminho, out path);
-
-                        GerarBloco442(sheet, out i, num, out caminho, out path);
-
-                        MessageBox.Show("Concluído. Verifique em " + Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));
-                    }
+                    MessageBox.Show("Concluído. Verifique em " + Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));
                 }
-                else
-                {
-                    MessageBox.Show("Favor carregar os dados para dar inicio ao processo de conversão", "Aviso", MessageBoxButtons.OK);
-                }
-
             }
-            catch (System.Exception ex)
+            else
             {
-                StackTrace stackTrace = new StackTrace(true);
-
-                string caminho = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-
-                //Como tem apenas um erro segue a ideia de array começando em 0 por isso o Framecount -1 se você for trabalhar com mais de um erro precisará ajustar esse trecho
-                var stFrame = stackTrace.GetFrame(stackTrace.FrameCount - 1);
-                string WriteLine = ($"Método: {stFrame.GetMethod().Name} \r\nArquivo: {stFrame.GetFileName()} \r\nLinha: {stFrame.GetFileLineNumber()} \r\nErro: {ex.Message}");
-
-                string caminhoArquivo = Path.Combine(caminho, "LogErro.txt");
-
-                if (!File.Exists(caminhoArquivo))
-                {
-                    FileStream arquivo = File.Create(caminhoArquivo);
-                    arquivo.Close();
-                }
-
-                using (StreamWriter w = File.AppendText(caminhoArquivo))
-                {
-                    w.WriteLine(WriteLine, w);
-                }
-
-                MessageBox.Show("Um erro ocorreu, verifique o log gerado no caminho: " + caminhoArquivo, "Aviso", MessageBoxButtons.OK);
-
+                MessageBox.Show("Favor carregar os dados para dar inicio ao processo de conversão", "Aviso", MessageBoxButtons.OK);
             }
+
+            //}
+            //catch (System.Exception ex)
+            //{
+            //    StackTrace stackTrace = new StackTrace(true);
+
+            //    string caminho = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+
+            //    //Como tem apenas um erro segue a ideia de array começando em 0 por isso o Framecount -1 se você for trabalhar com mais de um erro precisará ajustar esse trecho
+            //    var stFrame = stackTrace.GetFrame(stackTrace.FrameCount - 1);
+            //    string WriteLine = ($"Método: {stFrame.GetMethod().Name} \r\nArquivo: {stFrame.GetFileName()} \r\nLinha: {stFrame.GetFileLineNumber()} \r\nErro: {ex.Message}");
+
+            //    string caminhoArquivo = Path.Combine(caminho, "LogErro.txt");
+
+            //    if (!File.Exists(caminhoArquivo))
+            //    {
+            //        FileStream arquivo = File.Create(caminhoArquivo);
+            //        arquivo.Close();
+            //    }
+
+            //    using (StreamWriter w = File.AppendText(caminhoArquivo))
+            //    {
+            //        w.WriteLine(WriteLine, w);
+            //    }
+
+            //    MessageBox.Show("Um erro ocorreu, verifique o log gerado no caminho: " + caminhoArquivo, "Aviso", MessageBoxButtons.OK);
+
+            //}
         }
 
         private void GerarBloco442(ExcelWorksheet sheet, out int i, int num, out string caminho, out string path)
@@ -174,9 +175,6 @@ namespace In86
             caminho = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             path = caminho + @"\Bloco4.4.2.txt";
             x = File.CreateText(path);
-
-            // Títulos
-            x.WriteLine("|01 - Modelo|02 - Série / sub|03 - Num docto|4 - Data emissão|5 - Numero DI|Linha preenchida IN86 - 4.4.2|");
 
             i = 2;
             string calcA, calcB, calcC, calcD, calcE, calcF;
@@ -207,9 +205,9 @@ namespace In86
                     countTemp++;
 
 
-                    calcF = calcA + calcB.PadLeft(3, ' ') + ' ' + calcC + calcD + calcE.Replace(',', ' ');
+                    calcF = calcA + calcB.PadRight(5, ' ') + calcC + calcD + calcE.Replace(",", "");
 
-                    x.WriteLine("|" + calcA + "|" + calcB + "|" + calcC + "|" + calcD + "|" + calcE + "|" + calcF + "|");
+                    x.WriteLine(calcF);
 
                 }
                 i++;
@@ -224,10 +222,6 @@ namespace In86
             caminho = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             path = caminho + @"\Bloco4.4.1.txt";
             x = File.CreateText(path);
-
-
-            // Títulos
-            x.WriteLine("|01 - Modelo|02 - Série / sub|03 - Num docto|4 - Data emissão|5 - Numero do registro|6 - Numero do despacho|Linha preenchida IN86 - 4.4.1|");
 
             i = 2;
             string calcA, calcB, calcC, calcD, calcE, calcF, calcG;
@@ -262,9 +256,9 @@ namespace In86
                     calcD = sheet.Cells[i, 8].Value.ToString();
                     calcE = sheet.Cells[i, 7].Value.ToString().Substring(1, 12);
                     calcF = sheet.Cells[i, 7].Value.ToString().Substring(13, 12);
-                    calcG = calcA + calcB.PadRight(5, ' ') + calcC.PadLeft(9, ' ') + calcD + calcE + calcF.Replace(',', ' ');
+                    calcG = calcA + calcB.PadRight(5, ' ') + calcC.PadRight(9, ' ') + calcD + calcE + calcF.Replace(",", "");
 
-                    x.WriteLine("|" + calcA + "|" + calcB + "|" + calcC + "|" + calcD + "|" + calcE + "|" + calcF + "|" + calcG + "|");
+                    x.WriteLine(calcG);
                 }
                 i++;
             }
@@ -344,13 +338,6 @@ namespace In86
             caminho = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             path = caminho + @"\Bloco4.10.6.txt";
             x = File.CreateText(path);
-
-            // Títulos
-            x.WriteLine("|1 - Série|2 - Nr docto|3 - DT Emissão|4 - Participante|5 - Nr item|6 - CST PIS|" +
-                "7 - Alíquota|8 - Base Calc|09 - Vlr Crédito PIS - Receita Exportação|10 - Vlr Crédito PIS - Receita Mercado interno|" +
-                "11 - Vlr Crédito PIS - Receita não tributada|12 - Vlr PIS|13 - CST COFINS|14 - Alíq Cofins|15 - BC Cofins|" +
-                "16 - Vlr Créd Cofins Receita Exportação|17 - Vlr Créd Cofins - Receita Mercado interno|18 - Vlr Créd Cofins Receita não tributada|" +
-                "19 - Valor Cofins|20 - Dt Apropriação|Linha preenchida IN25/10 - 4.10.6|");
 
             i = 2;
             string calcA, calcB, calcC, calcD, calcE, calcF, calcG, calcH, calcI, calcJ, calcK, calcL, calcM, calcN, calcO, calcP, calcQ, calcR, calcS, calcT, calcU;
@@ -432,13 +419,13 @@ namespace In86
                     calcM = calcF;
                     calcO = calcH;
 
-                    calcU = calcA.PadLeft(5, ' ') + calcB.PadLeft(9, ' ') + calcC + calcD.PadLeft(14, ' ') + calcE + calcF.PadLeft(2, ' ') + calcG.Replace(',', ' ') + calcH.Replace(',', ' ') +
-                        calcI.Replace(',', ' ') + calcJ.Replace(',', ' ') + calcK.Replace(',', ' ') + calcL.Replace(',', ' ') + calcM.PadLeft(2, ' ') + calcN.Replace(',', ' ') + calcO.Replace(',', ' ') +
-                        calcP.Replace(',', ' ') + calcQ.Replace(',', ' ') + calcR.Replace(',', ' ') + calcS.Replace(',', ' ') + calcT;
+                    calcU = calcA.PadRight(5, ' ') + calcB.PadLeft(9, ' ') + calcC + calcD.PadRight(14, ' ') + calcE + calcF.PadRight(2, ' ') + calcG.Replace(",", "") + calcH.Replace(",", "") +
+                        calcI.Replace(",", "") + calcJ.Replace(",", "") + calcK.Replace(",", "") + calcL.Replace(",", "") + calcM.PadRight(2, ' ') + calcN.Replace(",", "") + calcO.Replace(",", "") +
+                        calcP.Replace(",", "") + calcQ.Replace(",", "") + calcR.Replace(",", "") + calcS.Replace(",", "") + calcT;
 
 
 
-                    x.WriteLine("|" + calcA + "|" + calcB + "|" + calcC + "|" + calcD + "|" + calcE + "|" + calcF + "|" + calcG + "|" + calcH + "|" + calcI + "|" + calcJ + "|" + calcK + "|" + calcL + "|" + calcM + "|" + calcN + "|" + calcO + "|" + calcP + "|" + calcQ + "|" + calcR + "|" + calcS + "|" + calcT + "|" + calcU + "|");
+                    x.WriteLine(calcU);
 
                 }
                 i++;
@@ -453,12 +440,6 @@ namespace In86
             caminho = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             path = caminho + @"\Bloco4.10.5.txt";
             x = File.CreateText(path);
-
-            // Títulos
-            x.WriteLine("|1 - Modelo docto|2 - Série|3 - Num do dcto|4 - Dt Emissão|5 - Cod Participante|" +
-            "6 - Nr item|7 - CST PIS|8 - Alíquota|9 - Base Calc|10 - Vlr Crédito PIS - Receita Exportação|11 - Vlr Crédito PIS - Receita Mercado interno|" +
-            "12 - Vlr Crédito PIS - Receita não tributada|13 - Vlr PIS|14 - CST COFINS|15 - Alíq Cofins|16 - BC Cofins|17 - Vlr Créd Cofins Receita Exportação|" +
-            "18 - Vlr Créd Cofins - Receita Mercado interno|19 - Vlr Créd Cofins Receita não tributada|20 - Valor Cofins|21 - Dt Apropriação|Linha preenchida IN25/10 - 4.10.5|");
 
             i = 2;
             string calcA, calcB, calcC, calcD, calcE, calcF, calcG, calcH, calcI, calcJ, calcK, calcL, calcM, calcN, calcO, calcP, calcQ, calcR, calcS, calcT, calcU, calcV;
@@ -607,11 +588,12 @@ namespace In86
                         }
 
 
-                        calcV = calcA + calcB.PadLeft(5, ' ') + calcC + calcD + calcE.PadLeft(14, ' ') + calcF + calcG.PadLeft(2, ' ') + calcH.Replace(',', ' ') + calcI.Replace(',', ' ') +
-                            calcJ.Replace(',', ' ') + calcK.Replace(',', ' ') + calcL.Replace(',', ' ') + calcM.Replace(',', ' ') + calcN.Replace(',', ' ') + calcO.Replace(',', ' ') + calcP.Replace(',', ' ') +
-                            calcQ.Replace(',', ' ') + calcR.Replace(',', ' ') + calcS.Replace(',', ' ') + calcT.Replace(',', ' ') + calcU;
+                        calcV = calcA + calcB.PadRight(5, ' ') + calcC + calcD + calcE.PadRight(14, ' ') + calcF + calcG.PadRight(2, ' ') + calcH.Replace(",", "") + calcI.Replace(",", "") +
+                            calcJ.Replace(",", "") + calcK.Replace(",", "") + calcL.Replace(",", "") + calcM.Replace(",", "") + calcN.Replace(",", "") + calcO.Replace(",", "") + calcP.Replace(",", "") +
+                            calcQ.Replace(",", "") + calcR.Replace(",", "") + calcS.Replace(",", "") + calcT.Replace(",", "") + calcU;
 
-                        x.WriteLine("|" + calcA + "|" + calcB + "|" + calcC + "|" + calcD + "|" + calcE + "|" + calcF + "|" + calcG + "|" + calcH + "|" + calcI + "|" + calcJ + "|" + calcK + "|" + calcL + "|" + calcM + "|" + calcN + "|" + calcO + "|" + calcP + "|" + calcQ + "|" + calcR + "|" + calcS + "|" + calcT + "|" + calcU + "|" + calcV + "|");
+                        x.WriteLine(calcV);
+                        x.Flush();
 
                     }
                     i++;
@@ -627,12 +609,6 @@ namespace In86
             caminho = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             path = caminho + @"\Bloco4.10.4.txt";
             x = File.CreateText(path);
-
-            // Títulos
-            x.WriteLine("|1 - Modelo docto|2 - Série|3 - Num do dcto|4 - Dt Emissão|5 - Nr item|" +
-            "6 - CST PIS|7 - Alíquota|8 - Base Calc|9 - Vlr Crédito PIS - Receita Exportação|10 - Vlr Crédito PIS - Receita Mercado interno|11 - Vlr Crédito PIS - Receita não tributada|" +
-            "12 - Vlr PIS|13 - CST COFINS|14 - Alíq Cofins|15 - BC Cofins|16 - Vlr Créd Cofins Receita Exportação|17 - Vlr Créd Cofins - Receita Mercado interno|" +
-            "18 - Vlr Créd Cofins Receita não tributada|19 - Valor Cofins|20 - Dt Apropriação|Linha preenchida IN25/10 - 4.10.4|");
 
             i = 2;
             string calcA, calcB, calcC, calcD, calcE, calcF, calcG, calcH, calcI, calcJ, calcK, calcL, calcM, calcN, calcO, calcP, calcQ, calcR, calcS, calcT, calcU;
@@ -778,11 +754,13 @@ namespace In86
                             }
                         }
 
-                        calcU = calcA + calcB.PadLeft(5, ' ') + calcC + calcD + calcE + calcF.PadLeft(2, ' ') + calcG.Replace(',', ' ') + calcH.Replace(',', ' ') + calcI.Replace(',', ' ') +
-                            calcJ.Replace(',', ' ') + calcK.Replace(',', ' ') + calcL.Replace(',', ' ') + calcM.PadLeft(2, ' ') + calcN.Replace(',', ' ') + calcO.Replace(',', ' ') + calcP.Replace(',', ' ') +
-                            calcQ.Replace(',', ' ') + calcR.Replace(',', ' ') + calcS.Replace(',', ' ') + calcT;
+                        calcU = calcA + calcB.PadRight(5, ' ') + calcC + calcD + calcE + calcF.PadLeft(2, ' ') + calcG.Replace(",", "") + calcH.Replace(",", "") + calcI.Replace(",", "") +
+                            calcJ.Replace(",", "") + calcK.Replace(",", "") + calcL.Replace(",", "") + calcM.PadRight(2, ' ') + calcN.Replace(",", "") + calcO.Replace(",", "") + calcP.Replace(",", "") +
+                            calcQ.Replace(",", "") + calcR.Replace(",", "") + calcS.Replace(",", "") + calcT;
 
-                        x.WriteLine("|" + calcA + "|" + calcB + "|" + calcC + "|" + calcD + "|" + calcE + "|" + calcF + "|" + calcG + "|" + calcH + "|" + calcI + "|" + calcJ + "|" + calcK + "|" + calcL + "|" + calcM + "|" + calcN + "|" + calcO + "|" + calcP + "|" + calcQ + "|" + calcR + "|" + calcS + "|" + calcT + "|" + calcU + "|");
+                        x.WriteLine(calcU);
+                        x.Flush();
+
                     }
                 }
 
@@ -819,10 +797,6 @@ namespace In86
             caminho = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             path = caminho + @"\Bloco4.10.1.txt";
             x = File.CreateText(path);
-
-            x.WriteLine("|1 - Modelo docto|2 - Série|3 - Num do dcto|4 - Dt Emissão|5 - Nr item|" +
-            "6 - CST PIS|7 - Alíquota|8 - Base Calc|9 - Vlr PIS|10 - CST Cofins|11 - Alíq Cofins|" +
-            "12 - BC Cofins|13 - Valor Cofins|14 - Dt Apropriação|Linha preenchida IN25/10 - 4.10.1|");
 
             i = 2;
             string calcA, calcB, calcC, calcD, calcE, calcF, calcG, calcH, calcI, calcJ, calcK, calcL, calcM, calcN, calcO;
@@ -876,10 +850,12 @@ namespace In86
                         calcL = calcH;
 
 
-                        calcO = calcA + calcB.PadLeft(5, ' ') + calcC + calcD + calcE + calcF.PadLeft(2, ' ') + calcG.Replace(',', ' ') + calcH.Replace(',', ' ') + calcI.Replace(',', ' ') + calcJ.Replace(',', ' ') +
-                            calcK.Replace(',', ' ') + calcL.Replace(',', ' ') + calcM.Replace(',', ' ') + calcN;
+                        calcO = calcA + calcB.PadRight(5, ' ') + calcC + calcD + calcE + calcF.PadRight(2, ' ') + calcG.Replace(",", "") + calcH.Replace(",", "") + calcI.Replace(",", "") + calcJ.Replace(",", "") +
+                            calcK.Replace(",", "") + calcL.Replace(",", "") + calcM.Replace(",", "") + calcN;
 
-                        x.WriteLine("|" + calcA + "|" + calcB + "|" + calcC + "|" + calcD + "|" + calcE + "|" + calcF + "|" + calcG + "|" + calcH + "|" + calcI + "|" + calcJ + "|" + calcK + "|" + calcL + "|" + calcM + "|" + calcN + "|" + calcO + "|");
+                        x.WriteLine(calcO);
+                        x.Flush();
+
                     }
 
                     i++;
@@ -896,11 +872,6 @@ namespace In86
             caminho = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             path = caminho + @"\Bloco4.3.9.txt";
             x = File.CreateText(path);
-
-            // Títulos
-            x.WriteLine("|1 - Série|2 - Nr docto|3 - DT Emissão|4 - Participante|5 - Nr item|" +
-            "6 - Código Serviço|7 - Descrição compl|8 - Valor do serviço|9 - Desconto|10 - Aliq ISS|11 - Base Calculo ISS|" +
-            "12 - VL ISS|Linha preenchida IN25/10 - 4.3.9|");
 
             i = 2;
             string calcA, calcB, calcC, calcD, calcE, calcF, calcG, calcH, calcI, calcJ, calcK, calcL, calcM;
@@ -972,10 +943,12 @@ namespace In86
                         calcJ = string.Format(@"{0:f}", calc);
                     }
 
-                    calcM = calcA.PadLeft(5, ' ') + calcB.PadLeft(9, ' ') + calcC + calcD.PadLeft(14, ' ') + calcE + calcF.PadLeft(20, ' ') + calcG.PadLeft(45, ' ') +
-                        calcH.Replace(',', ' ') + calcI.Replace(',', ' ') + calcJ.Replace(',', ' ') + calcK.Replace(',', ' ') + calcL.Replace(',', ' ');
+                    calcM = calcA.PadRight(5, ' ') + calcB.PadLeft(9, ' ') + calcC + calcD.PadRight(14, ' ') + calcE + calcF.PadRight(20, ' ') + calcG.PadLeft(45, ' ') +
+                        calcH.Replace(",", "") + calcI.Replace(",", "") + calcJ.Replace(",", "") + calcK.Replace(",", "") + calcL.Replace(",", "");
 
-                    x.WriteLine("|" + calcA + "|" + calcB + "|" + calcC + "|" + calcD + "|" + calcE + "|" + calcF + "|" + calcG + "|" + calcH + "|" + calcI + "|" + calcJ + "|" + calcK + "|" + calcL + "|" + calcM + "|");
+                    x.WriteLine(calcM);
+                    x.Flush();
+
                 }
                 i++;
             }
@@ -990,10 +963,6 @@ namespace In86
             caminho = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             path = caminho + @"\Bloco4.3.8.txt";
             x = File.CreateText(path);
-
-            // Títulos
-            x.WriteLine("|1 - Série|2 - Nr docto|3 - DT Emissão|4 - Participante|5 - Valor do serviço|" +
-            "6 - Desconto|7 - Aliq IRR|8 - Base Calculo IRRF|9 - VL IRRF|Linha preenchida IN25/10 - 4.3.8|");
 
             i = 2;
             string calcA, calcB, calcC, calcD, calcE, calcF, calcG, calcH, calcI, calcJ;
@@ -1028,10 +997,12 @@ namespace In86
                     calcH = "";
                     calcI = "";
 
-                    calcJ = calcA.PadLeft(5, ' ') + calcB + calcC + calcD.PadLeft(14, ' ') + calcE.Replace(',', ' ') + calcF.Replace(',', ' ') +
-                        calcG.Replace(',', ' ') + calcH.Replace(',', ' ') + calcI.Replace(',', ' ');
+                    calcJ = calcA.PadRight(5, ' ') + calcB + calcC + calcD.PadRight(14, ' ') + calcE.Replace(",", "") + calcF.Replace(",", "") +
+                        calcG.Replace(",", "") + calcH.Replace(",", "") + calcI.Replace(",", "");
 
-                    x.WriteLine("|" + calcA + "|" + calcB + "|" + calcC + "|" + calcD + "|" + calcE + "|" + calcF + "|" + calcG + "|" + calcH + "|" + calcI + "|" + calcJ + "|");
+                    x.WriteLine(calcJ);
+                    x.Flush();
+
                 }
 
                 i++;
@@ -1128,13 +1099,6 @@ namespace In86
             path = caminho + @"\Bloco4.3.4.txt";
             x = File.CreateText(path);
 
-            // Títulos
-            x.WriteLine("|1 - Modelo|2 - Série|3 - Nr docto|4 - DT Emissão|5 - Participante|" +
-            "6 - Nr item|7 - Cód Merc/Serv|8 - Descrição compl|9 - CFOP|10 - Cod Nat|11 - Clas Fisc Merc|12 - Qtdade|13 - unid|" +
-            "14 - Vlr Unit|15 -Vlr Tot Item|16 - Desconto|17 - Ind Trib IPI|18 - Aliq IPI|19 - BC IPI|20 - Vlr IPI|21 - CST ICMS|" +
-            "22 - Ind ICMS|23 - Aliq ICMS|24 - BC ICMS|25 - Vlr ICMS Pr|26 - BC ICMS ST|27 -Vlr ICMS ST|28 - Ind Mov|29 - CST IPI|" +
-            "Linha preenchida IN86 - 4.3.4|");
-
             float calc = 0;
 
             i = 2;
@@ -1184,9 +1148,9 @@ namespace In86
 
                 if (value.Length >= 30)
                 {
-                    if (sheet.Cells[i, 1].Value.ToString() == "C100" && sheet.Cells[i, 2].Value.ToString() == "0")
+                    if (sheet.Cells[i, 1].Value.ToString() == "C170")
                     {
-                        if (calcTempC[countTemp].ToString().Substring(0, 1) == "1")
+                        if (calcTempC[countTemp].Substring(0, 1).Equals("1"))
                         {
                             calcA = calcTempC[countTemp].Substring(2, 2);
                             calcB = calcTempC[countTemp].Substring(14, 3);
@@ -1209,6 +1173,11 @@ namespace In86
                             calcJ = sheet.Cells[i, 12].Value.ToString();
                             calcL = sheet.Cells[i, 5].Value.ToString();
                             calcM = sheet.Cells[i, 6].Value.ToString();
+
+                            if (calcJ.Contains(","))
+                            {
+                                calcJ = calcJ.Replace(",", "");
+                            }
 
                             if (!string.IsNullOrEmpty(calcL))
                             {
@@ -1249,76 +1218,79 @@ namespace In86
                             {
                                 calcAB = "N";
                             }
-                        }
 
-                        if (calcQ == "1")
-                        {
-                            calcAC = "00";
-                        }
-                        else
-                        {
-                            calcAC = "02";
-                        }
-                        countTemp++;
-
-                        if (calcG.ToString() != null && calcG.ToString() != "FALSO")
-                        {
-                            foreach (string g in calcR200)
+                            if (calcQ == "1")
                             {
-                                if (g.Equals(calcG.ToString()))
-                                {
-                                    calcK = g;
-                                }
-
-                                if (calcK != "")
-                                    break;
-
-                                count++;
+                                calcAC = "00";
                             }
+                            else
+                            {
+                                calcAC = "02";
+                            }
+                            countTemp++;
+
+                            if (calcG.ToString() != null && calcG.ToString() != "FALSO")
+                            {
+                                foreach (string g in calcR200)
+                                {
+                                    if (g.Equals(calcG.ToString()))
+                                    {
+                                        calcK = g;
+                                    }
+
+                                    if (calcK != "")
+                                        break;
+
+                                    count++;
+                                }
+                            }
+
+                            if (calcT == "0,00")
+                            {
+                                calcQ = "2";
+                            }
+                            else
+                            {
+                                calcQ = "1";
+                            }
+
+                            if (calcU.Substring(2, 1) == "2" || calcU.Substring(2, 1) == "1" || calcU.Substring(2, 1) == "0")
+                            {
+                                calcV = "1";
+                            }
+                            else if (calcU.Substring(2, 1) == "9")
+                            {
+                                calcV = "3";
+                            }
+                            else if (calcU.Substring(2, 1) == "7")
+                            {
+                                calcV = "1";
+                            }
+                            else
+                            {
+                                calcV = "2";
+                            }
+
+                            if (calcQ == "1")
+                            {
+                                calcAC = "00";
+                            }
+                            else
+                            {
+                                calcAC = "02";
+                            }
+
+                            calcAD = calcA + calcB.PadRight(5, ' ') + calcC + calcD + calcE.PadRight(14, ' ') + calcF.PadLeft(3, ' ') + calcG.PadRight(20, ' ') +
+                                calcH.PadRight(45, ' ') + calcI + calcJ.PadRight(6, ' ') + calcK.PadRight(8, ' ') + calcL.Replace(",", "") + calcM.PadRight(3, ' ') +
+                                calcN.Replace(",", "") + calcO.Replace(",", "") + calcP.Replace(",", "") + calcQ + calcR.Replace(",", "") + calcS.Replace(",", "") +
+                                calcT.Replace(",", "") + calcU + calcV + calcW.Replace(",", "") + calcX.Replace(",", "") + calcY.Replace(",", "") + calcZ.Replace(",", "") +
+                                calcAA.Replace(",", "") + calcAB + calcAC.PadRight(2, ' ');
+
+                            x.WriteLine(calcAD);
+                            x.Flush();
+
                         }
 
-                        if (calcT == "0,00")
-                        {
-                            calcQ = "2";
-                        }
-                        else
-                        {
-                            calcQ = "1";
-                        }
-
-                        if (calcU.Substring(2, 1) == "2" || calcU.Substring(2, 1) == "1" || calcU.Substring(2, 1) == "0")
-                        {
-                            calcV = "1";
-                        }
-                        else if (calcU.Substring(2, 1) == "9")
-                        {
-                            calcV = "3";
-                        }
-                        else if (calcU.Substring(2, 1) == "7")
-                        {
-                            calcV = "1";
-                        }
-                        else
-                        {
-                            calcV = "2";
-                        }
-
-                        if (calcQ == "1")
-                        {
-                            calcAC = "00";
-                        }
-                        else
-                        {
-                            calcAC = "02";
-                        }
-
-                        calcAD = calcA + calcB.PadLeft(5, ' ') + calcC + calcD + calcE.PadLeft(14, ' ') + calcF.PadLeft(3, ' ') + calcG.PadLeft(20, ' ') +
-                            calcH.PadLeft(45, ' ') + calcI + calcJ.PadLeft(6, ' ') + calcK.PadLeft(8, ' ') + calcL.Replace(',', ' ') + calcM.PadLeft(3, ' ') +
-                            calcN.Replace(',', ' ') + calcO.Replace(',', ' ') + calcP.Replace(',', ' ') + calcQ + calcR.Replace(',', ' ') + calcS.Replace(',', ' ') +
-                            calcT.Replace(',', ' ') + calcU + calcV + calcW.Replace(',', ' ') + calcX.Replace(',', ' ') + calcY.Replace(',', ' ') + calcZ.Replace(',', ' ') +
-                            calcAA.Replace(',', ' ') + calcAB + calcAC.PadLeft(2, ' ');
-
-                        x.WriteLine("|" + calcA + "|" + calcB + "|" + calcC + "|" + calcD + "|" + calcE + "|" + calcF + "|" + calcG + "|" + calcH + "|" + calcI + "|" + calcJ + "|" + calcK + "|" + calcL + "|" + calcM + "|" + calcN + "|" + calcO + "|" + calcP + "|" + calcQ + "|" + calcR + "|" + calcS + "|" + calcT + "|" + calcU + "|" + calcV + "|" + calcW + "|" + calcX + "|" + calcY + "|" + calcZ + "|" + calcAA + "|" + calcAB + "|" + calcAC + "|" + calcAD + "|");
                     }
                 }
 
@@ -1335,13 +1307,6 @@ namespace In86
             caminho = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             path = caminho + @"\Bloco4.3.3.txt";
             x = File.CreateText(path);
-
-            // Títulos
-            x.WriteLine("|1 - Modelo|2 - Série|3 - Nr docto|4 - DT Emissão|5 - Participante|" +
-            "6 - DT Entrada|7 - VL Mercadorias|8 - Desc|9 - Vlr Frete|10 - Vlr Seguro|11 - Vlr Out Despesas|12 - Vlr IPI|13 - Vlr ICMS ST|" +
-            "14 -Vlr T NF|15 - IE Sub|16 - Tipo Fat|17 - Observ|18 - Ato Declaratorio|19 - Mod Doc Ref|20 - Ser/Sub Doc Ref|21 - Num Doc Ref|" +
-            "22 - Data Em Doc Ref|23 -Part Doc Ref|Linha preenchida IN86 - 4.3.3|");
-
 
             i = 2;
             string calcA, calcB, calcC, calcD, calcE, calcF, calcG, calcH, calcI, calcJ, calcK, calcL, calcM, calcN, calcO, calcP, calcQ, calcR, calcS, calcT, calcU, calcV, calcW, calcX, calcY;
@@ -1387,13 +1352,13 @@ namespace In86
                         calcB = sheet.Cells[i, 7].Value.ToString().Replace("*", "").PadLeft(3, '0');
                         calcC = sheet.Cells[i, 8].Value.ToString().PadLeft(9, '0');
 
-                        if (sheet.Cells[i, 9].Value.ToString() == "")
+                        if (sheet.Cells[i, 10].Value.ToString() == "")
                         {
                             calcD = "";
                         }
                         else
                         {
-                            calcD = sheet.Cells[i, 9].Value.ToString();
+                            calcD = sheet.Cells[i, 10].Value.ToString();
                         }
 
                         if (sheet.Cells[i, 4].Value.ToString() == "")
@@ -1405,7 +1370,7 @@ namespace In86
                             calcE = sheet.Cells[i, 4].Value.ToString();
                         }
 
-                        if (sheet.Cells[i, 10].Value.ToString() == "")
+                        if (calcD == "")
                         {
                             calcF = "";
                         }
@@ -1491,13 +1456,15 @@ namespace In86
                         calcX = "";
 
 
-                        calcY = calcA + calcB.PadLeft(5, ' ').Substring(5) + calcC + calcD.PadLeft(8, ' ').Substring(8) + calcE.PadLeft(14, ' ').Substring(14) +
-                            calcF.PadLeft(8, ' ').Substring(8) + calcG.Replace(',', ' ') + calcH.Replace(',', ' ') + calcI.Replace(',', ' ') + calcJ.Replace(',', ' ') +
-                            calcK.Replace(',', ' ') + calcL.Replace(',', ' ') + calcM.Replace(',', ' ') + calcN.Replace(',', ' ') + calcO.PadLeft(14, ' ').Substring(14) +
-                            calcP.PadLeft(1, ' ').Substring(1) + calcQ.PadLeft(45, ' ').Substring(45) + calcR.PadLeft(50, ' ').Substring(50) + calcS.PadLeft(2, ' ').Substring(2) +
-                            calcT.PadLeft(5, ' ').Substring(5) + calcU.PadLeft(9, ' ').Substring(9) + calcV.PadLeft(8, ' ').Substring(8) + calcW.PadLeft(14, ' ').Substring(14);
+                        calcY = calcA + calcB.PadRight(5, ' ') + calcC + calcD.PadLeft(8, ' ').Substring(0, 8) + calcE.PadLeft(14, ' ') +
+                            calcF.PadLeft(8, ' ').Substring(0, 8) + calcG.Replace(",", "")
+                            + calcH.Replace(",", "") + calcI.Replace(",", "") + calcJ.Replace(",", "") +
+                            calcK.Replace(",", "") + calcL.Replace(",", "") + calcM.Replace(",", "") + calcN.Replace(",", "") + calcO.PadLeft(14, ' ').Substring(0, 14) +
+                            calcP.PadLeft(1, ' ').Substring(0, 1);
 
-                        x.WriteLine("|" + calcA + "|" + calcB + "|" + calcC + "|" + calcD + "|" + calcE + "|" + calcF + "|" + calcG + "|" + calcH + "|" + calcI + "|" + calcJ + "|" + calcK + "|" + calcL + "|" + calcM + "|" + calcN + "|" + calcO + "|" + calcP + "|" + calcQ + "|" + calcR + "|" + calcS + "|" + calcT + "|" + calcU + "|" + calcV + "|" + calcW + "|" + calcX + "|" + calcY + "|");
+                        x.WriteLine(calcY);
+                        x.Flush();
+
                     }
                 }
 
@@ -1515,17 +1482,10 @@ namespace In86
             path = caminho + @"\Bloco4.3.2.txt";
             x = File.CreateText(path);
 
-            // Títulos
-            x.WriteLine("|1 - Ind Movto|2 - Modelo|3 - Série|4 - Nr docto|5 - DT Emissão" +
-            "|6 - Nr item|7 - Cód Merc/Serv|8 - Descrição compl|9 - CFOP|10 - Cod Nat|11 - Clas Fisc Merc|12 - Qtdade|13 - unid" +
-            "|14 - Vlr Unit|15 - Vlr Tot Item|16 - Desconto|17 - Ind Trib IPI|18 - Aliq IPI|19 - BC IPI|20 - Vlr IPI|21 - CST ICMS" +
-            "|22 - Ind ICMS|23 - Aliq ICMS|24 - BC ICMS|25 - Vlr ICMS Pr|26 - BC ICMS ST|27 - Vlr ICMS ST|28 - Ind Mov|29 - CST IPI" +
-            "|Linha Preenchida IN86 - 4.3.2|");
-
             i = 2;
             string calcA, calcB, calcC, calcD, calcE, calcF, calcG, calcH, calcI, calcJ, calcK, calcL, calcM, calcN, calcO, calcP, calcQ, calcR, calcS, calcT, calcU, calcV, calcW, calcX, calcY, calcZ, calcAA, calcAB, calcAC, calcAD;
             float nCalc;
-            int count = 1, countTemp;
+            int count = 1, countTemp, j = 0;
 
             countTemp = 0;
 
@@ -1568,222 +1528,232 @@ namespace In86
 
                 if (value.Length >= 39)
                 {
-                    if (sheet.Cells[i, 1].Value.ToString() == "C170" && sheet.Cells[i, 2].Value.ToString() == "1")
+                    if (sheet.Cells[i, 1].Value.ToString() == "C170")
                     {
-                        if (calcTempC[countTemp].ToString() != "")
+                        if (countTemp > calcTempC.Count() && calcTempC.Count != i)
                         {
-                            if (calcTempC[countTemp].Substring(0, 1).ToString() == "1")
+                            j = calcTempC.Count;
+                        }
+
+                        if (calcTempC[countTemp - j].Substring(0, 1).Equals("0"))
+                        {
+                            if (calcTempC[countTemp - j].Length > 25)
                             {
-                                calcA = "E";
-
-                                calcB = calcTempC[countTemp].Substring(2, 2);
-                                calcC = calcTempC[countTemp].Substring(14, 3);
-                                calcD = calcTempC[countTemp].Substring(5, 9);
-                                calcE = calcTempC[countTemp].Substring(17, 8);
-
-                                calcC = calcC.Replace('*', ' ');
-                            }
-                            else
-                            {//errado a verificação e os valores do calculo
-                                calcA = "S";
-
-                                calcB = calcTempC[countTemp].Substring(2, 2);
-                                calcC = calcTempC[countTemp].Substring(14, 3);
-                                calcD = calcTempC[countTemp].Substring(5, 9);
-                                calcE = calcTempC[countTemp].Substring(17, 8);
-                                calcC = calcC.Replace('*', ' ');
-                            }
-                            if (!string.IsNullOrEmpty(sheet.Cells[i, 2].Value.ToString()))
-                            {
-                                calcF = sheet.Cells[i, 2].Value.ToString().PadLeft(3, '0');
-                            }
-
-                            if (!string.IsNullOrEmpty(sheet.Cells[i, 3].Value.ToString()))
-                            {
-                                calcG = sheet.Cells[i, 3].Value.ToString();
-                            }
-
-                            if (!string.IsNullOrEmpty(sheet.Cells[i, 4].Value.ToString()))
-                            {
-                                calcH = sheet.Cells[i, 4].Value.ToString();
-                            }
-
-                            if (!string.IsNullOrEmpty(sheet.Cells[i, 11].Value.ToString()))
-                            {
-                                calcI = sheet.Cells[i, 11].Value.ToString();
-                            }
-
-                            if (!string.IsNullOrEmpty(sheet.Cells[i, 12].Value.ToString()))
-                            {
-                                calcJ = sheet.Cells[i, 12].Value.ToString();
-                            }
-
-                            if (calcG.ToString() != null && calcG.ToString() != "FALSO")
-                            {
-                                foreach (string g in calcR200)
+                                if (calcTempC[countTemp - j].Substring(1, 1).Equals("1"))
                                 {
-                                    if (g.Equals(calcG.ToString()))
-                                    {
-                                        calcK = g;
-                                    }
+                                    calcA = "E";
 
-                                    if (calcK != "")
-                                        break;
+                                    calcB = calcTempC[countTemp - j].Substring(2, 2);
+                                    calcC = calcTempC[countTemp - j].Substring(15, 3);
+                                    calcD = calcTempC[countTemp - j].Substring(4, 9);
+                                    calcE = calcTempC[countTemp - j].Substring(16, 8);
 
-                                    count++;
+                                    calcC = calcC.Replace('*', ' ');
                                 }
-                            }
+                                else
+                                {//errado a verificação e os valores do calculo
+                                    calcA = "S";
 
-                            if (!string.IsNullOrEmpty(sheet.Cells[i, 5].Value.ToString()))
-                            {
-                                calcL = string.Format(@"{0:f}", sheet.Cells[i, 5].Value.ToString());
-                            }
-                            else
-                            {
-                                calcL = "0,00";
-                            }
+                                    calcB = calcTempC[countTemp - j].Substring(2, 2);
+                                    calcC = calcTempC[countTemp - j].Substring(15, 3);
+                                    calcD = calcTempC[countTemp - j].Substring(4, 9);
+                                    calcE = calcTempC[countTemp - j].Substring(16, 8);
+                                    calcC = calcC.Replace("*", "");
+                                }
+                                if (!string.IsNullOrEmpty(sheet.Cells[i, 2].Value.ToString()))
+                                {
+                                    calcF = sheet.Cells[i, 2].Value.ToString().PadLeft(3, '0');
+                                }
 
-                            if (!string.IsNullOrEmpty(sheet.Cells[i, 6].Value.ToString()))
-                            {
-                                calcM = sheet.Cells[i, 6].Value.ToString();
-                            }
+                                if (!string.IsNullOrEmpty(sheet.Cells[i, 3].Value.ToString()))
+                                {
+                                    calcG = sheet.Cells[i, 3].Value.ToString();
+                                }
 
-                            if (!string.IsNullOrEmpty(sheet.Cells[i, 7].Value.ToString()) && calcL != null && calcL != "FALSO")
-                            {
-                                nCalc = float.Parse(sheet.Cells[i, 7].Value.ToString());
-                                calcN = string.Format(@"{0:f}", nCalc / float.Parse(calcL));
-                            }
+                                if (!string.IsNullOrEmpty(sheet.Cells[i, 4].Value.ToString()))
+                                {
+                                    calcH = sheet.Cells[i, 4].Value.ToString();
+                                }
 
-                            if (!string.IsNullOrEmpty(sheet.Cells[i, 7].Value.ToString()))
-                            {
-                                calcO = string.Format(@"{0:f}", sheet.Cells[i, 7].Value.ToString());
-                            }
+                                if (!string.IsNullOrEmpty(sheet.Cells[i, 11].Value.ToString()))
+                                {
+                                    calcI = sheet.Cells[i, 11].Value.ToString();
+                                }
 
-                            if (!string.IsNullOrEmpty(sheet.Cells[i, 8].Value.ToString()))
-                            {
-                                calcP = string.Format(@"{0:f}", sheet.Cells[i, 8].Value.ToString());
-                            }
+                                if (!string.IsNullOrEmpty(sheet.Cells[i, 12].Value.ToString()))
+                                {
+                                    calcJ = sheet.Cells[i, 12].Value.ToString();
+                                }
 
-                            if (!string.IsNullOrEmpty(sheet.Cells[i, 24].Value.ToString()))
-                            {
-                                calcT = sheet.Cells[i, 24].Value.ToString();
-                            }
+                                if (calcG.ToString() != null && calcG.ToString() != "FALSO")
+                                {
+                                    foreach (string g in calcR200)
+                                    {
+                                        if (g.Equals(calcG.ToString()))
+                                        {
+                                            calcK = g;
+                                        }
 
-                            if (!string.IsNullOrEmpty(sheet.Cells[i, 23].Value.ToString()))
-                            {
-                                calcR = string.Format(@"{0:f}", sheet.Cells[i, 23].Value.ToString());
-                            }
+                                        if (calcK != "")
+                                            break;
 
-                            if (!string.IsNullOrEmpty(sheet.Cells[i, 22].Value.ToString()))
-                            {
-                                calcS = string.Format(@"{0:f}", sheet.Cells[i, 22].Value.ToString());
-                            }
+                                        count++;
+                                    }
+                                }
 
-                            if (!string.IsNullOrEmpty(sheet.Cells[i, 10].Value.ToString()))
-                            {
-                                calcU = string.Format(@"{0:f}", sheet.Cells[i, 10].Value.ToString());
-                            }
+                                if (!string.IsNullOrEmpty(sheet.Cells[i, 5].Value.ToString()))
+                                {
+                                    calcL = string.Format(@"{0:f}", sheet.Cells[i, 5].Value.ToString());
+                                }
+                                else
+                                {
+                                    calcL = "0,00";
+                                }
 
-                            if (string.IsNullOrEmpty(sheet.Cells[i, 14].Value.ToString()))
-                            {
-                                calcW = "0,00";
-                            }
-                            else
-                            {
-                                calcW = string.Format(@"{0:f}", sheet.Cells[i, 14].Value.ToString());
-                            }
+                                if (!string.IsNullOrEmpty(sheet.Cells[i, 6].Value.ToString()))
+                                {
+                                    calcM = sheet.Cells[i, 6].Value.ToString();
+                                }
 
-                            if (!string.IsNullOrEmpty(sheet.Cells[i, 13].Value.ToString()))
-                            {
-                                calcX = sheet.Cells[i, 13].Value.ToString();
-                            }
+                                if (!string.IsNullOrEmpty(sheet.Cells[i, 7].Value.ToString()) && calcL != null && calcL != "FALSO")
+                                {
+                                    nCalc = float.Parse(sheet.Cells[i, 7].Value.ToString());
+                                    calcN = string.Format(@"{0:f}", nCalc / float.Parse(calcL));
+                                }
 
-                            if (!string.IsNullOrEmpty(sheet.Cells[i, 15].Value.ToString()))
-                            {
-                                calcY = string.Format(@"{0:f}", sheet.Cells[i, 15].Value.ToString());
-                            }
+                                if (!string.IsNullOrEmpty(sheet.Cells[i, 7].Value.ToString()))
+                                {
+                                    calcO = string.Format(@"{0:f}", sheet.Cells[i, 7].Value.ToString());
+                                }
 
-                            if (!string.IsNullOrEmpty(sheet.Cells[i, 16].Value.ToString()))
-                            {
-                                calcZ = string.Format(@"{0:f}", sheet.Cells[i, 16].Value.ToString());
-                            }
+                                if (!string.IsNullOrEmpty(sheet.Cells[i, 8].Value.ToString()))
+                                {
+                                    calcP = string.Format(@"{0:f}", sheet.Cells[i, 8].Value.ToString());
+                                }
 
-                            if (!string.IsNullOrEmpty(sheet.Cells[i, 18].Value.ToString()))
-                            {
-                                calcAA = string.Format(@"{0:f}", sheet.Cells[i, 18].Value.ToString());
-                            }
+                                if (!string.IsNullOrEmpty(sheet.Cells[i, 24].Value.ToString()))
+                                {
+                                    calcT = sheet.Cells[i, 24].Value.ToString();
+                                }
 
-                            if (sheet.Cells[i, 9].Value.ToString() == "0")
-                            {
-                                calcAB = "S";
-                            }
-                            else
-                            {
-                                calcAB = "N";
+                                if (!string.IsNullOrEmpty(sheet.Cells[i, 23].Value.ToString()))
+                                {
+                                    calcR = string.Format(@"{0:f}", sheet.Cells[i, 23].Value.ToString());
+                                }
+
+                                if (!string.IsNullOrEmpty(sheet.Cells[i, 22].Value.ToString()))
+                                {
+                                    calcS = string.Format(@"{0:f}", sheet.Cells[i, 22].Value.ToString());
+                                }
+
+                                if (!string.IsNullOrEmpty(sheet.Cells[i, 10].Value.ToString()))
+                                {
+                                    calcU = string.Format(@"{0:f}", sheet.Cells[i, 10].Value.ToString());
+                                }
+
+                                if (string.IsNullOrEmpty(sheet.Cells[i, 14].Value.ToString()))
+                                {
+                                    calcW = "0,00";
+                                }
+                                else
+                                {
+                                    calcW = string.Format(@"{0:f}", sheet.Cells[i, 14].Value.ToString());
+                                }
+
+                                if (!string.IsNullOrEmpty(sheet.Cells[i, 13].Value.ToString()))
+                                {
+                                    calcX = sheet.Cells[i, 13].Value.ToString();
+                                }
+
+                                if (!string.IsNullOrEmpty(sheet.Cells[i, 15].Value.ToString()))
+                                {
+                                    calcY = string.Format(@"{0:f}", sheet.Cells[i, 15].Value.ToString());
+                                }
+
+                                if (!string.IsNullOrEmpty(sheet.Cells[i, 16].Value.ToString()))
+                                {
+                                    calcZ = string.Format(@"{0:f}", sheet.Cells[i, 16].Value.ToString());
+                                }
+
+                                if (!string.IsNullOrEmpty(sheet.Cells[i, 18].Value.ToString()))
+                                {
+                                    calcAA = string.Format(@"{0:f}", sheet.Cells[i, 18].Value.ToString());
+                                }
+
+                                if (sheet.Cells[i, 9].Value.ToString() == "0")
+                                {
+                                    calcAB = "S";
+                                }
+                                else
+                                {
+                                    calcAB = "N";
+                                }
+
+
+                                if (calcT.Equals("0,00"))
+                                {
+                                    calcQ = "2";
+                                }
+                                else
+                                {
+                                    calcQ = "1";
+                                }
+
+                                if (!string.IsNullOrEmpty(calcU) && calcU != "FALSO")
+                                {
+                                    if (int.Parse(calcU.Substring(2, 1)) < 3)
+                                    {
+                                        calcV = "1";
+                                    }
+                                    else if (int.Parse(calcU.Substring(2, 1)) == 9)
+                                    {
+                                        calcV = "3";
+                                    }
+                                    else if (int.Parse(calcU.Substring(2, 1)) == 7)
+                                    {
+                                        calcV = "1";
+                                    }
+                                    else
+                                    {
+                                        calcV = "2";
+                                    }
+                                }
+                                else
+                                {
+                                    calcV = "2";
+                                }
+
+                                if (sheet.Cells[i, 15].Value.ToString() == "1" && calcA == "S")
+                                {
+                                    calcAC = "50";
+                                }
+                                else if (sheet.Cells[i, 15].Value.ToString() == "2" && calcA == "S")
+                                {
+                                    calcAC = "52";
+                                }
+                                else if (sheet.Cells[i, 15].Value.ToString() == "1" && calcA == "E")
+                                {
+                                    calcAC = "00";
+                                }
+                                else
+                                {
+                                    calcAC = "02";
+                                }
+
+                                calcAD = calcA + calcB + calcC.PadRight(5, ' ') + calcD + calcE + calcF + calcG.PadRight(20, ' ') + calcH.PadRight(45, ' ') + calcI +
+                                    calcJ.PadRight(6, ' ') + calcK.Replace(",", "").PadLeft(8, '0') + calcL.Replace(",", "").PadLeft(17, '0') + calcM.PadRight(3, ' ').PadLeft(3, '0') +
+                                    calcN.Replace(",", "").PadLeft(17, '0') + calcO.Replace(",", "").PadLeft(17, '0') + calcP.Replace(",", "").PadLeft(17, '0') + calcQ +
+                                    calcR.Replace(",", "").PadLeft(5, '0') + calcS.Replace(",", "").PadLeft(17, '0') + calcT.Replace(",", "").PadLeft(17, '0') + calcU + calcV +
+                                    calcW.Replace(",", "").PadLeft(5, '0') + calcX.Replace(",", "").PadLeft(17, '0') + calcY.Replace(",", "").PadLeft(17, '0') + calcZ.Replace(",", "").PadLeft(17, '0') +
+                                    calcAA.Replace(",", "").PadLeft(17, '0') + calcAB + calcAC.PadRight(2, ' ');
+
+                                x.WriteLine(calcAD);
+                                x.Flush();
                             }
                         }
-
-                        countTemp++;
-                        if (calcT.Equals("0,00"))
-                        {
-                            calcQ = "2";
-                        }
-                        else
-                        {
-                            calcQ = "1";
-                        }
-
-                        if (!string.IsNullOrEmpty(calcU) && calcU != "FALSO")
-                        {
-                            if (int.Parse(calcU.Substring(2, 1)) < 3)
-                            {
-                                calcV = "1";
-                            }
-                            else if (int.Parse(calcU.Substring(2, 1)) == 9)
-                            {
-                                calcV = "3";
-                            }
-                            else if (int.Parse(calcU.Substring(2, 1)) == 7)
-                            {
-                                calcV = "1";
-                            }
-                            else
-                            {
-                                calcV = "2";
-                            }
-                        }
-                        else
-                        {
-                            calcV = "2";
-                        }
-
-                        if (sheet.Cells[i, 15].Value.ToString() == "1" && calcA == "S")
-                        {
-                            calcAC = "50";
-                        }
-                        else if (sheet.Cells[i, 15].Value.ToString() == "2" && calcA == "S")
-                        {
-                            calcAC = "52";
-                        }
-                        else if (sheet.Cells[i, 15].Value.ToString() == "1" && calcA == "E")
-                        {
-                            calcAC = "00";
-                        }
-                        else
-                        {
-                            calcAC = "02";
-                        }
-
-                        calcAD = calcA + calcB + calcC.PadRight(5, ' ') + calcD + calcE + calcF + calcG.PadLeft(20, ' ') + calcH.PadRight(45, ' ') + calcI.PadRight(6, ' ') +
-                            calcJ.PadRight(6, ' ') + calcK.Replace(',', ' ').PadLeft(8, '0') + calcL.Replace(',', ' ').PadLeft(17, '0') + calcM.PadLeft(3, ' ').PadLeft(3, '0') +
-                            calcN.Replace(',', ' ').PadLeft(17, '0') + calcO.Replace(',', ' ').PadLeft(17, '0') + calcP.Replace(',', ' ').PadLeft(17, '0') + calcQ +
-                            calcR.Replace(',', ' ').PadLeft(5, '0') + calcS.Replace(',', ' ').PadLeft(17, '0') + calcT.Replace(',', ' ').PadLeft(17, '0') + calcU + calcV +
-                            calcW.Replace(',', ' ').PadLeft(5, '0') + calcX.Replace(',', ' ').PadLeft(17, '0') + calcY.Replace(',', ' ').PadLeft(17, '0') + calcZ.Replace(',', ' ').PadLeft(17, '0') +
-                            calcAA.Replace(',', ' ').PadLeft(17, '0') + calcAB + calcAC.PadRight(2, ' ');
-
-                        x.WriteLine("|" + calcA + "|" + calcB + "|" + calcC + "|" + calcD + "|" + calcE + "|" + calcF + "|" + calcG + "|" + calcH + "|" + calcI + "|" + calcJ + "|" + calcK + "|" + calcL + "|" + calcM + "|" + calcN + "|" + calcO + "|" + calcP + "|" + calcQ + "|" + calcR + "|" + calcS + "|" + calcT + "|" + calcU + "|" + calcV + "|" + calcW + "|" + calcX + "|" + calcY + "|" + calcZ + "|" + calcAA + "|" + calcAB + "|" + calcAC + "|" + calcAD + "|");
                     }
                 }
+                countTemp++;
                 i++;
 
             }
@@ -1791,6 +1761,8 @@ namespace In86
 
         private static void CarregarSheetBlocoC(ExcelWorksheet sheet, int i, string[] value)
         {
+            int count = 0;
+
             for (int j = 1; j < value.Count(); j++)
             {
                 if (value.Length >= 30)
@@ -1926,16 +1898,9 @@ namespace In86
             path = caminho + @"\Bloco4.3.1.txt";
             x = File.CreateText(path);
 
-            // Títulos
-            x.WriteLine("|1 - Ind Movto|2 - Modelo|3 - Série|4 - Nr docto|5 - DT Emissão|" +
-                "6 - Participante|7 - DT Entrada|8 - Vl Mercadorias|9 - Desc|10 - Vlr Frete|11 - Vlr Seguro|12 - Vlr Out Despesas|13 - Vlr IPI|" +
-                "14 - Vlr ICMS ST|15 - VlrNF|16 - IE Sub|17 - Via Transp|18 - Código Transp|19 - Qt Vol|20 - Esp Volume|21 - Peso Bruto|" +
-                "22 - Peso Liq|23 - Mod Frete|24 - Ident Veic|25 - Ind Canc|26 - Tipo Fat|27 - Observ|28 - ADE|29 - Mod doc Ref|" +
-                "|30 - Ser Sub|31 - Nr doc ref|32 - DT Emis Ref|33 - Cod Part Ref");
 
             i = 2;
             string calcA, calcB, calcC, calcD, calcE, calcF, calcG, calcH, calcI, calcJ, calcK, calcL, calcM, calcN, calcO, calcP, calcQ, calcR, calcS, calcT, calcU, calcV, calcW, calcX, calcY, calcZ, calcAA, calcAB, calcAC, calcAD, calcAE, calcAF, calcAG;
-
             foreach (string y in C100)
             {
                 calcA = "";
@@ -1996,7 +1961,7 @@ namespace In86
 
                         if (sheet.Cells[i, 7].Value != null)
                         {
-                            calcC = sheet.Cells[i, 7].Value.ToString().PadLeft(3, '0');
+                            calcC = sheet.Cells[i, 7].Value.ToString().PadLeft(3, '0').PadRight(5, ' ');
                         }
 
                         if (sheet.Cells[i, 8].Value != null)
@@ -2006,16 +1971,16 @@ namespace In86
 
                         if (sheet.Cells[i, 10].Value.ToString() == "")
                         {
-                            calcE = "";
+                            calcE = "00000000";
                         }
                         else
                         {
-                            calcE = sheet.Cells[i, 10].Value.ToString();
+                            calcE = sheet.Cells[i, 10].Value.ToString().PadLeft(8, '0');
                         }
 
                         if (sheet.Cells[i, 4].Value.ToString() == "")
                         {
-                            calcF = "";
+                            calcF = "              ";
                         }
                         else
                         {
@@ -2024,51 +1989,51 @@ namespace In86
 
                         if (sheet.Cells[i, 11].Value.ToString() == "")
                         {
-                            calcG = "";
+                            calcG = "00000000";
                         }
                         else
                         {
-                            calcG = sheet.Cells[i, 11].Value.ToString();
+                            calcG = sheet.Cells[i, 11].Value.ToString().PadLeft(8, '0');
                         }
 
                         if (sheet.Cells[i, 16].Value.ToString() != null)
                         {
-                            calcH = string.Format(@"{0:f}", sheet.Cells[i, 16].Value.ToString());
+                            calcH = sheet.Cells[i, 16].Value.ToString().PadLeft(17, '0').Replace(",", "");
                         }
 
                         if (sheet.Cells[i, 14].Value.ToString() != null)
                         {
-                            calcI = string.Format(@"{0:f}", sheet.Cells[i, 14].Value.ToString());
+                            calcI = sheet.Cells[i, 14].Value.ToString().PadLeft(17, '0').Replace(",", "");
                         }
 
                         if (sheet.Cells[i, 18].Value.ToString() != "")
                         {
-                            calcJ = string.Format(@"{0:f}", sheet.Cells[i, 18].Value.ToString());
+                            calcJ = sheet.Cells[i, 18].Value.ToString().PadLeft(17, '0').Replace(",", "");
                         }
 
                         if (sheet.Cells[i, 19].Value.ToString() != "")
                         {
-                            calcK = string.Format(@"{0:f}", sheet.Cells[i, 19].Value.ToString());
+                            calcK = sheet.Cells[i, 19].Value.ToString().PadLeft(17, '0').Replace(",", "");
                         }
 
                         if (sheet.Cells[i, 20].Value.ToString() != "")
                         {
-                            calcL = string.Format(@"{0:f}", sheet.Cells[i, 20].Value.ToString());
+                            calcL = sheet.Cells[i, 20].Value.ToString().PadLeft(17, '0').Replace(",", "");
                         }
 
                         if (sheet.Cells[i, 25].Value.ToString() != "")
                         {
-                            calcM = string.Format(@"{0:f}", sheet.Cells[i, 25].Value.ToString());
+                            calcM = sheet.Cells[i, 25].Value.ToString().PadLeft(17, '0').Replace(",", "");
                         }
 
                         if (sheet.Cells[i, 24].Value.ToString() != "")
                         {
-                            calcN = string.Format(@"{0:f}", sheet.Cells[i, 24].Value.ToString());
+                            calcN = sheet.Cells[i, 24].Value.ToString().PadLeft(17, '0').Replace(",", "");
                         }
 
                         if (sheet.Cells[i, 12].Value.ToString() != "")
                         {
-                            calcO = string.Format(@"{0:f}", sheet.Cells[i, 12].Value.ToString());
+                            calcO = sheet.Cells[i, 12].Value.ToString().PadLeft(17, '0').Replace(",", "");
                         }
 
                         if (sheet.Cells[i, 17].Value != null || sheet.Cells[i, 17].Value.ToString() != "")
@@ -2083,12 +2048,12 @@ namespace In86
                             }
                             else
                             {
-                                calcW = "";
+                                calcW = "   ";
                             }
                         }
                         else
                         {
-                            calcW = "";
+                            calcW = "   ";
                         }
 
                         if (sheet.Cells[i, 6].Value.ToString() != "" || sheet.Cells[i, 6].Value != null)
@@ -2103,7 +2068,7 @@ namespace In86
                             }
                             else
                             {
-                                calcY = "";
+                                calcY = " ";
                             }
                         }
 
@@ -2119,11 +2084,69 @@ namespace In86
                             }
                             else
                             {
-                                calcZ = "";
+                                calcZ = " ";
                             }
                         }
 
-                        x.WriteLine("|" + calcA + "|" + calcB + "|" + calcC + "|" + calcD + "|" + calcE + "|" + calcF + "|" + calcG + "|" + calcH + "|" + calcI + "|" + calcJ + "|" + calcK + "|" + calcL + "|" + calcM + "|" + calcN + "|" + calcO + "|" + calcP + "|" + calcQ + "|" + calcR + "|" + calcS + "|" + calcT + "|" + calcU + "|" + calcV + "|" + calcW + "|" + calcY + "|" + calcZ + "|" + calcAA + "|" + calcAB + "|" + calcAC + "|" + calcAD + "|" + calcAE + "|" + calcAF + "|" + calcAG + "|");
+                        if (sheet.Cells[i, 38].Value.ToString() == "")
+                        {
+                            calcAC = "  ";
+                        }
+                        else
+                        {
+                            calcAC = sheet.Cells[i, 38].Value.ToString().PadRight(2, ' ');
+                        }
+
+                        if (sheet.Cells[i, 39].Value.ToString() == "")
+                        {
+                            calcAD = "     ";
+                        }
+                        else
+                        {
+                            calcAD = sheet.Cells[i, 39].Value.ToString().PadRight(5, ' ');
+                        }
+
+                        if (sheet.Cells[i, 40].Value.ToString() == "")
+                        {
+                            calcAE = "000000000";
+                        }
+                        else
+                        {
+                            calcAE = sheet.Cells[i, 40].Value.ToString().PadLeft(9, '0');
+                        }
+
+                        if (sheet.Cells[i, 41].Value.ToString() == "")
+                        {
+                            calcAF = "00000000";
+                        }
+                        else
+                        {
+                            calcAF = sheet.Cells[i, 41].Value.ToString().PadLeft(8, '0');
+                        }
+
+                        if (sheet.Cells[i, 42].Value.ToString() == "")
+                        {
+                            calcAG = "              ";
+                        }
+                        else
+                        {
+                            calcAG = sheet.Cells[i, 42].Value.ToString().PadRight(14, ' ');
+                        }
+
+                        calcP.PadRight(14, ' ');
+                        calcQ.PadRight(15, ' ');
+                        calcR.PadRight(14, ' ');
+                        calcS.PadLeft(17, '0');
+                        calcT.PadRight(10, ' ');
+                        calcU.PadLeft(17, '0');
+                        calcV.PadLeft(17, '0');
+                        calcX.PadRight(15, ' ');
+                        calcAA.PadRight(45, ' ');
+                        calcAB.PadRight(50, ' ');
+
+                        x.WriteLine(calcA + calcB + calcC + calcD + calcE + calcF + calcG + calcH + calcI + calcJ + calcK + calcL + calcM + calcN + calcO + calcP + calcQ + calcR + calcS + calcT + calcU + calcV + calcW + calcY + calcZ + calcAA + calcAB + calcAC + calcAD + calcAE + calcAF + calcAG);
+                        x.Flush();
+
                     }
                 }
 
@@ -2473,6 +2496,8 @@ namespace In86
                         x.WriteLine("||" + sheet.Cells[i, 2].Value + "|||" + sheet.Cells[i, 5].Value + "|" + sheet.Cells[i, 6].Value + "|" + sheet.Cells[i, 6].Value + "||||||" + sheet.Cells[i, 12].Value + "|");
                     }
                     num++;
+                    x.Flush();
+
                 }
                 i++;
             }
@@ -2546,6 +2571,7 @@ namespace In86
 
                 calcTempB.Add(calcB);
                 x.WriteLine("|" + calcA + "|" + calcB + y);
+                x.Flush();
 
                 i++;
             }
@@ -2597,18 +2623,20 @@ namespace In86
                     {
                         if (y.Contains("C100"))
                         {
-                            if (!string.IsNullOrEmpty(sheet.Cells[i, 7].Value.ToString()))
+
+                            if (sheet.Cells[i, 7].Value.ToString() != "")
                             {
-                                calcA = "" + sheet.Cells[i, 3].Value + "" + sheet.Cells[i, 2].Value + "" +
-                                    sheet.Cells[i, 5].Value + "" + sheet.Cells[i, 8].Value.ToString().PadLeft(9, '0') + "" +
-                                    sheet.Cells[i, 7].Value.ToString().PadLeft(3, '0') + sheet.Cells[i, 10].Value +
-                                    sheet.Cells[i, 11].Value + sheet.Cells[i, 4].Value;
+                                calcA = sheet.Cells[i, 3].Value.ToString() + sheet.Cells[i, 2].Value.ToString() +
+                                    sheet.Cells[i, 5].Value.ToString() + sheet.Cells[i, 8].Value.ToString().PadLeft(9, '0') +
+                                    sheet.Cells[i, 7].Value.ToString().PadLeft(3, '0') + sheet.Cells[i, 10].Value.ToString() +
+                                    sheet.Cells[i, 11].Value.ToString() + sheet.Cells[i, 4].Value.ToString();
                             }
                             else
                             {
-                                calcA = "" + sheet.Cells[i, 3].Value + "" + sheet.Cells[i, 2].Value + "" +
-                                    sheet.Cells[i, 5].Value + "" + sheet.Cells[i, 8].Value.ToString().PadLeft(9, '0') + "   " +
-                                    sheet.Cells[i, 10].Value + sheet.Cells[i, 11].Value + sheet.Cells[i, 4].Value;
+                                calcA = sheet.Cells[i, 3].Value.ToString() + sheet.Cells[i, 2].Value.ToString() +
+                                    sheet.Cells[i, 5].Value.ToString() + sheet.Cells[i, 8].Value.ToString().PadLeft(9, '0') +
+                                    "   " + sheet.Cells[i, 10].Value.ToString() +
+                                    sheet.Cells[i, 11].Value.ToString() + sheet.Cells[i, 4].Value.ToString();
 
                             }
                         }
@@ -2616,6 +2644,7 @@ namespace In86
                         {
                             calcA = "";
                         }
+
                     }
                     else
                     {
@@ -2637,26 +2666,26 @@ namespace In86
                         {
                             count += 1;
                         }
-                        if (count != 0)
-                        {
-                            if (!string.IsNullOrEmpty(sheet.Cells[i - count, 7].Value.ToString()))
-                            {
-                                calcB = "" + sheet.Cells[i - count, 3].Value + "" + sheet.Cells[i - count, 2].Value + "" +
-                                    sheet.Cells[i - count, 5].Value + "" + sheet.Cells[i - count, 8].Value.ToString().PadLeft(9, '0') + "" +
-                                    sheet.Cells[i - count, 7].Value.ToString().PadLeft(3, '0') + sheet.Cells[i - count, 10].Value +
-                                    sheet.Cells[i - count, 11].Value + sheet.Cells[i - count, 4].Value;
-                            }
-                            else
-                            {
-                                calcB = "" + sheet.Cells[i - count, 3].Value + "" + sheet.Cells[i - count, 2].Value + "" +
-                                    sheet.Cells[i - count, 5].Value + "" + sheet.Cells[i - count, 8].Value.ToString().PadLeft(9, '0') + "   " +
-                                    sheet.Cells[i - count, 10].Value + sheet.Cells[i - count, 11].Value + sheet.Cells[i - count, 4].Value;
 
-                            }
-                            calcTempC.Add(calcB);
+                        if (!string.IsNullOrEmpty(sheet.Cells[i - count, 7].Value.ToString()))
+                        {
+                            calcB = sheet.Cells[i - count, 3].Value.ToString() + sheet.Cells[i - count, 2].Value.ToString() +
+                                sheet.Cells[i - count, 5].Value.ToString() + sheet.Cells[i - count, 8].Value.ToString().PadLeft(9, '0') +
+                                sheet.Cells[i - count, 7].Value.ToString().PadLeft(3, '0') + sheet.Cells[i - count, 10].Value.ToString() +
+                                sheet.Cells[i - count, 11].Value.ToString() + sheet.Cells[i - count, 4].Value.ToString();
                         }
+                        else
+                        {
+                            calcB = sheet.Cells[i - count, 3].Value.ToString() + sheet.Cells[i - count, 2].Value.ToString() +
+                                sheet.Cells[i - count, 5].Value.ToString() + sheet.Cells[i - count, 8].Value.ToString().PadLeft(9, '0') +
+                                "   " + sheet.Cells[i - count, 10].Value.ToString() +
+                                sheet.Cells[i - count, 11].Value.ToString() + sheet.Cells[i - count, 4].Value.ToString();
+                        }
+
                     }
+                    calcTempC.Add(calcB);
                     x.WriteLine("|" + calcA + "|" + calcB + y);
+                    x.Flush();
                 }
                 else
                 {
@@ -2664,6 +2693,21 @@ namespace In86
                 }
 
                 i++;
+            }
+        }
+
+        private void GeraC170NrDocumento()
+        {
+            foreach (string y in C100)
+            {
+                if (y.Contains("C170"))
+                {
+                    string[] value = y.Split('|');
+
+                    //calcTempB[0].ToString();
+
+                    // if()
+                }
             }
         }
 
