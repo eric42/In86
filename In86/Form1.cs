@@ -25,6 +25,7 @@ namespace In86
         List<string> calcTempB = new List<string>();
         List<string> calcR200 = new List<string>();
         List<string> C100 = new List<string>();
+        List<string> C100431 = new List<string>();
         List<string> A100 = new List<string>();
         List<string> C113 = new List<string>();
         List<string> R200 = new List<string>();
@@ -33,6 +34,7 @@ namespace In86
         List<string> R0 = new List<string>();
         List<string> C100Temp = new List<string>();
         List<string> C170Temp = new List<string>();
+        List<string> C170 = new List<string>();
         public bool carregado = false;
         public bool carregadoPis = false;
 
@@ -1162,208 +1164,304 @@ namespace In86
             string calcA, calcB, calcC, calcD, calcE, calcF, calcG, calcH, calcI, calcJ, calcK, calcL, calcM, calcN, calcO, calcP, calcQ, calcR, calcS, calcT, calcU, calcV, calcW, calcX, calcY, calcZ, calcAA, calcAB, calcAC, calcAD;
             int countTemp, count;
             countTemp = 0;
+            bool valido = false;
 
-            foreach (string y in C100)
+            foreach (string w in C100431)
             {
 
-                calcA = "";
-                calcB = "";
-                calcC = "";
-                calcD = "";
-                calcE = "";
-                calcF = "";
-                calcG = "";
-                calcH = "";
-                calcI = "";
-                calcJ = "";
-                calcL = "";
-                calcK = "";
-                calcM = "";
-                calcN = "";
-                calcO = "";
-                calcP = "";
-                calcQ = "";
-                calcR = "";
-                calcS = "";
-                calcT = "";
-                calcU = "";
-                calcV = "";
-                calcW = "";
-                calcX = "";
-                calcY = "";
-                calcZ = "";
-                calcAA = "";
-                calcAB = "";
-                calcAC = "";
-                calcAD = "";
-
-                string[] value = y.Split('|');//.Where(x => x != "");
-
-                CarregaBlocoCSheet40(sheet, i, value);
-
-                count = 0;
-
-                if (value.Length >= 30)
+                foreach (string y in C100)
                 {
-                    if (sheet.Cells[i, 1].Value.ToString() == "C170")
+
+                    if (w == y && y.Contains("|C100|"))
                     {
-                        if (calcTempC[countTemp].Substring(0, 1).Equals("1"))
+                        valido = true;
+                    }
+
+                    if (w != y && y.Contains("|C100|"))
+                    {
+                        valido = false;
+                    }
+
+                    if (valido && (y.Contains("|C100|") || y.Contains("|C170|")))
+                    {
+
+                        calcA = "";
+                        calcB = "";
+                        calcC = "";
+                        calcD = "";
+                        calcE = "";
+                        calcF = "";
+                        calcG = "";
+                        calcH = "";
+                        calcI = "";
+                        calcJ = "";
+                        calcL = "";
+                        calcK = "";
+                        calcM = "";
+                        calcN = "";
+                        calcO = "";
+                        calcP = "";
+                        calcQ = "";
+                        calcR = "";
+                        calcS = "";
+                        calcT = "";
+                        calcU = "";
+                        calcV = "";
+                        calcW = "";
+                        calcX = "";
+                        calcY = "";
+                        calcZ = "";
+                        calcAA = "";
+                        calcAB = "";
+                        calcAC = "";
+                        calcAD = "";
+
+                        string[] value = y.Split('|');//.Where(x => x != "");
+
+                        CarregaBlocoCSheet40(sheet, i, value);
+
+                        count = 0;
+
+                        if (value.Length >= 30)
                         {
-                            calcA = calcTempC[countTemp].Substring(2, 2);
-                            calcB = calcTempC[countTemp].Substring(14, 3);
-                            calcC = calcTempC[countTemp].Substring(5, 9);
-                            calcD = calcTempC[countTemp].Substring(17, 8);
-                            calcE = calcTempC[countTemp].Substring(14, 8);
-                            calcF = sheet.Cells[i, 2].Value.ToString().PadLeft(3, '0');
-                            calcG = sheet.Cells[i, 3].Value.ToString();
-
-                            if (sheet.Cells[i, 4].Value.ToString() == "")
+                            if (sheet.Cells[i, 1].Value.ToString() == "C170")
                             {
-                                calcH = "";
-                            }
-                            else
-                            {
-                                calcH = sheet.Cells[i, 4].Value.ToString();
-                            }
-
-                            calcI = sheet.Cells[i, 11].Value.ToString();
-                            calcJ = sheet.Cells[i, 12].Value.ToString();
-                            calcL = sheet.Cells[i, 5].Value.ToString();
-                            calcL = calcL.Replace(",", "");
-                            calcM = sheet.Cells[i, 6].Value.ToString();
-
-                            if (calcJ.Contains(","))
-                            {
-                                calcJ = calcJ.Replace(",", "");
-                            }
-
-                            if (!string.IsNullOrEmpty(calcL))
-                            {
-                                calc = float.Parse(sheet.Cells[i, 7].Value.ToString() != "" ? sheet.Cells[i, 7].Value.ToString() : "0");
-                                calcN = string.Format(@"{0:f}", calc / float.Parse(calcL));
-                            }
-                            else
-                            {
-                                calcN = "0,00";
-                            }
-
-                            calcN = calcN.Replace(",", "");
-                            calcO = string.Format(@"{0:f}", sheet.Cells[i, 7].Value.ToString());
-                            calcO = calcO.Replace(",", "");
-                            calcP = string.Format(@"{0:f}", sheet.Cells[i, 8].Value.ToString());
-                            calcP = calcP.Replace(",", "");
-                            calcR = string.Format(@"{0:f}", sheet.Cells[i, 23].Value.ToString());
-                            calcR = calcR.Replace(",", "");
-                            calcS = string.Format(@"{0:f}", sheet.Cells[i, 22].Value.ToString());
-                            calcS = calcS.Replace(",", "");
-                            calcT = string.Format(@"{0:f}", sheet.Cells[i, 24].Value.ToString());
-                            calcT = calcT.Replace(",", "");
-
-                            if (sheet.Cells[i, 10].Value.ToString() != "")
-                            {
-                                calcU = sheet.Cells[i, 10].Value.ToString().PadLeft(3, '0');
-                            }
-                            else
-                            {
-                                calcU = "000";
-                            }
-
-                            calcW = string.Format(@"{0:f}", sheet.Cells[i, 14].Value.ToString());
-                            calcW = calcW.Replace(",", "");
-                            calcX = sheet.Cells[i, 13].Value.ToString();
-                            calcX = calcX.Replace(",", "");
-                            calcY = string.Format(@"{0:f}", sheet.Cells[i, 15].Value.ToString());
-                            calcY = calcY.Replace(",", "");
-                            calcZ = string.Format(@"{0:f}", sheet.Cells[i, 16].Value.ToString());
-                            calcZ = calcZ.Replace(",", "");
-                            calcAA = string.Format(@"{0:f}", sheet.Cells[i, 18].Value.ToString());
-                            calcAA = calcAA.Replace(",", "");
-
-                            if (sheet.Cells[i, 9].Value.ToString() == "0")
-                            {
-                                calcAB = "S";
-                            }
-                            else
-                            {
-                                calcAB = "N";
-                            }
-
-                            if (calcQ == "1")
-                            {
-                                calcAC = "00";
-                            }
-                            else
-                            {
-                                calcAC = "02";
-                            }
-                            countTemp++;
-
-                            if (calcG.ToString() != null && calcG.ToString() != "FALSO")
-                            {
-                                foreach (string g in calcR200)
+                                if (calcTempC[countTemp].Substring(0, 1).Equals("1"))
                                 {
-                                    if (g.Equals(calcG.ToString()))
+                                    calcA = calcTempC[countTemp].Substring(2, 2);
+                                    calcB = calcTempC[countTemp].Substring(14, 3);
+                                    calcC = calcTempC[countTemp].Substring(5, 9);
+                                    calcD = calcTempC[countTemp].Substring(17, 8);
+                                    calcE = calcTempC[countTemp].Substring(14, 8);
+                                    calcF = sheet.Cells[i, 2].Value.ToString().PadLeft(3, '0');
+                                    calcG = sheet.Cells[i, 3].Value.ToString();
+
+                                    if (sheet.Cells[i, 4].Value.ToString() == "")
                                     {
-                                        calcK = g;
+                                        calcH = "";
+                                    }
+                                    else
+                                    {
+                                        calcH = sheet.Cells[i, 4].Value.ToString();
                                     }
 
-                                    if (calcK != "")
-                                        break;
+                                    calcI = sheet.Cells[i, 11].Value.ToString();
+                                    calcJ = sheet.Cells[i, 12].Value.ToString();
+                                    calcL = sheet.Cells[i, 5].Value.ToString();
+                                    calcL = calcL.Replace(",", "");
+                                    calcM = sheet.Cells[i, 6].Value.ToString();
 
-                                    count++;
+                                    if (calcJ.Contains(","))
+                                    {
+                                        calcJ = calcJ.Replace(",", "");
+                                    }
+
+                                    if (!string.IsNullOrEmpty(calcL))
+                                    {
+                                        calc = float.Parse(sheet.Cells[i, 7].Value.ToString() != "" ? sheet.Cells[i, 7].Value.ToString() : "0");
+                                        calcN = string.Format(@"{0:f}", calc / float.Parse(calcL));
+                                    }
+                                    else
+                                    {
+                                        calcN = "0,00";
+                                    }
+
+                                    calcN = calcN.Replace(",", "");
+
+                                    if (!string.IsNullOrEmpty(sheet.Cells[i, 7].Value.ToString()))
+                                    {
+                                        calcO = string.Format(@"{0:f}", sheet.Cells[i, 7].Value.ToString());
+                                        calcO = calcO.Replace(",", "");
+                                    }
+                                    else
+                                    {
+                                        calcO = "000";
+                                    }
+
+                                    if (!string.IsNullOrEmpty(sheet.Cells[i, 8].Value.ToString()))
+                                    {
+                                        calcP = string.Format(@"{0:f}", sheet.Cells[i, 8].Value.ToString());
+                                        calcP = calcP.Replace(",", "");
+                                    }
+                                    else
+                                    {
+                                        calcP = "000";
+                                    }
+
+                                    if (!string.IsNullOrEmpty(sheet.Cells[i, 23].Value.ToString()))
+                                    {
+                                        calcR = string.Format(@"{0:f}", sheet.Cells[i, 23].Value.ToString());
+                                        calcR = calcR.Replace(",", "");
+                                    }
+                                    else
+                                    {
+                                        calcR = "000";
+                                    }
+
+                                    if (!string.IsNullOrEmpty(sheet.Cells[i, 22].Value.ToString()))
+                                    {
+                                        calcS = string.Format(@"{0:f}", sheet.Cells[i, 22].Value.ToString());
+                                        calcS = calcS.Replace(",", "");
+                                    }
+                                    else
+                                    {
+                                        calcS = "000";
+                                    }
+
+                                    if (!string.IsNullOrEmpty(sheet.Cells[i, 24].Value.ToString()))
+                                    {
+                                        calcT = string.Format(@"{0:f}", sheet.Cells[i, 24].Value.ToString());
+                                        calcT = calcT.Replace(",", "");
+                                    }
+                                    else
+                                    {
+                                        calcT = "000";
+                                    }
+
+                                    if (sheet.Cells[i, 10].Value.ToString() != "")
+                                    {
+                                        calcU = sheet.Cells[i, 10].Value.ToString().PadLeft(3, '0');
+                                    }
+                                    else
+                                    {
+                                        calcU = "000";
+                                    }
+
+                                    if (!string.IsNullOrEmpty(sheet.Cells[i, 14].Value.ToString()))
+                                    {
+                                        calcW = string.Format(@"{0:f}", sheet.Cells[i, 14].Value.ToString());
+                                        calcW = calcW.Replace(",", "");
+                                    }
+                                    else
+                                    {
+                                        calcW = "000";
+                                    }
+
+                                    if (!string.IsNullOrEmpty(sheet.Cells[i, 13].Value.ToString()))
+                                    {
+                                        calcX = sheet.Cells[i, 13].Value.ToString();
+                                        calcX = calcX.Replace(",", "");
+                                    }
+                                    else
+                                    {
+                                        calcX = "000";
+                                    }
+
+                                    if (!string.IsNullOrEmpty(sheet.Cells[i, 15].Value.ToString()))
+                                    {
+                                        calcY = string.Format(@"{0:f}", sheet.Cells[i, 15].Value.ToString());
+                                        calcY = calcY.Replace(",", "");
+                                    }
+                                    else
+                                    {
+                                        calcY = "000";
+                                    }
+
+                                    if (!string.IsNullOrEmpty(sheet.Cells[i, 16].Value.ToString()))
+                                    {
+                                        calcZ = string.Format(@"{0:f}", sheet.Cells[i, 16].Value.ToString());
+                                        calcZ = calcZ.Replace(",", "");
+                                    }
+                                    else
+                                    {
+                                        calcZ = "000";
+                                    }
+
+                                    if (!string.IsNullOrEmpty(sheet.Cells[i, 18].Value.ToString()))
+                                    {
+                                        calcAA = string.Format(@"{0:f}", sheet.Cells[i, 18].Value.ToString());
+                                        calcAA = calcAA.Replace(",", "");
+                                    }
+                                    else
+                                    {
+                                        calcAA = "000";
+                                    }
+                                    if (sheet.Cells[i, 9].Value.ToString() == "0")
+                                    {
+                                        calcAB = "S";
+                                    }
+                                    else
+                                    {
+                                        calcAB = "N";
+                                    }
+
+                                    if (calcQ == "1")
+                                    {
+                                        calcAC = "00";
+                                    }
+                                    else
+                                    {
+                                        calcAC = "02";
+                                    }
+                                    countTemp++;
+
+                                    if (calcG.ToString() != null && calcG.ToString() != "FALSO")
+                                    {
+                                        foreach (string g in calcR200)
+                                        {
+                                            if (g.Equals(calcG.ToString()))
+                                            {
+                                                calcK = g;
+                                            }
+
+                                            if (calcK != "")
+                                                break;
+
+                                            count++;
+                                        }
+                                    }
+
+                                    if (calcT == "0,00")
+                                    {
+                                        calcQ = "2";
+                                    }
+                                    else
+                                    {
+                                        calcQ = "1";
+                                    }
+
+                                    if (calcU.Substring(2, 1) == "2" || calcU.Substring(2, 1) == "1" || calcU.Substring(2, 1) == "0")
+                                    {
+                                        calcV = "1";
+                                    }
+                                    else if (calcU.Substring(2, 1) == "9")
+                                    {
+                                        calcV = "3";
+                                    }
+                                    else if (calcU.Substring(2, 1) == "7")
+                                    {
+                                        calcV = "1";
+                                    }
+                                    else
+                                    {
+                                        calcV = "2";
+                                    }
+
+                                    if (calcQ == "1")
+                                    {
+                                        calcAC = "00";
+                                    }
+                                    else
+                                    {
+                                        calcAC = "02";
+                                    }
+
+                                    calcAD = calcA + calcB.PadRight(5, ' ') + calcC.PadLeft(9, '0') + calcD.PadLeft(8, '0') + calcE.PadRight(14, ' ') + calcF.PadLeft(3, ' ') + calcG.PadRight(20, ' ') +
+                                        calcH.PadRight(45, ' ') + calcI.PadRight(4, ' ') + calcJ.PadRight(6, ' ') + calcK.PadRight(14, ' ') + calcL.PadLeft(17, '0') + calcM.PadRight(3, ' ') +
+                                        calcN.PadLeft(17, '0') + calcO.PadLeft(17, '0') + calcP.PadLeft(17, '0') + calcQ.PadRight(1, ' ') + calcR.PadLeft(5, '0') + calcS.PadLeft(17, '0') +
+                                        calcT.PadLeft(17, '0') + calcU.PadRight(3, ' ') + calcV.PadRight(1, ' ') + calcW.PadLeft(5, '0') + calcX.PadLeft(17, '0') + calcY.PadLeft(17, '0') + calcZ.PadLeft(17, '0') +
+                                        calcAA.PadLeft(17, '0') + calcAB.PadRight(1, ' ') + calcAC.PadRight(2, ' ');
+
+                                    x.WriteLine(calcAD);
+                                    x.Flush();
+
                                 }
-                            }
 
-                            if (calcT == "0,00")
-                            {
-                                calcQ = "2";
                             }
-                            else
-                            {
-                                calcQ = "1";
-                            }
-
-                            if (calcU.Substring(2, 1) == "2" || calcU.Substring(2, 1) == "1" || calcU.Substring(2, 1) == "0")
-                            {
-                                calcV = "1";
-                            }
-                            else if (calcU.Substring(2, 1) == "9")
-                            {
-                                calcV = "3";
-                            }
-                            else if (calcU.Substring(2, 1) == "7")
-                            {
-                                calcV = "1";
-                            }
-                            else
-                            {
-                                calcV = "2";
-                            }
-
-                            if (calcQ == "1")
-                            {
-                                calcAC = "00";
-                            }
-                            else
-                            {
-                                calcAC = "02";
-                            }
-
-                            calcAD = calcA + calcB.PadRight(5, ' ') + calcC.PadLeft(9, '0') + calcD.PadLeft(8, '0') + calcE.PadRight(14, ' ') + calcF.PadLeft(3, ' ') + calcG.PadRight(20, ' ') +
-                                calcH.PadRight(45, ' ') + calcI.PadRight(4, ' ') + calcJ.PadRight(6, ' ') + calcK.PadRight(8, ' ') + calcL.PadLeft(17, '0') + calcM.PadRight(3, ' ') +
-                                calcN.PadLeft(17, '0') + calcO.PadLeft(17, '0') + calcP.PadLeft(17, '0') + calcQ.PadRight(1, ' ') + calcR.PadLeft(5, '0') + calcS.PadLeft(17, '0') +
-                                calcT.PadLeft(17, '0') + calcU.PadRight(3, ' ') + calcV.PadRight(1, ' ') + calcW.PadLeft(5, '0') + calcX.PadLeft(17, '0') + calcY.PadLeft(17, '0') + calcZ.PadLeft(17, '0') +
-                                calcAA.PadLeft(17, '0') + calcAB.PadRight(1, ' ') + calcAC.PadRight(2, ' ');
-
-                            x.WriteLine(calcAD);
-                            x.Flush();
-
                         }
-
                     }
+                    i++;
                 }
-
-                i++;
             }
         }
 
@@ -1380,7 +1478,7 @@ namespace In86
             i = 2;
             string calcA, calcB, calcC, calcD, calcE, calcF, calcG, calcH, calcI, calcJ, calcK, calcL, calcM, calcN, calcO, calcP, calcQ, calcR, calcS, calcT, calcU, calcV, calcW, calcX, calcY;
 
-            foreach (string y in C100)
+            foreach (string y in C100431)
             {
 
                 calcA = "";
@@ -1564,309 +1662,432 @@ namespace In86
             string calcA, calcB, calcC, calcD, calcE, calcF, calcG, calcH, calcI, calcJ, calcK, calcL, calcM, calcN, calcO, calcP, calcQ, calcR, calcS, calcT, calcU, calcV, calcW, calcX, calcY, calcZ, calcAA, calcAB, calcAC, calcAD;
             float nCalc;
             int count = 1, countTemp, j = 0;
-
+            bool valido = false;
             countTemp = 0;
 
-            foreach (string y in C100)
+            int isNumeric;
+            bool number;
+
+            foreach (string w in C100431)
             {
-                calcA = "";
-                calcB = "";
-                calcC = "";
-                calcD = "";
-                calcE = "";
-                calcF = "";
-                calcG = "";
-                calcH = "";
-                calcI = "";
-                calcJ = "";
-                calcL = "";
-                calcK = "";
-                calcM = "";
-                calcN = "";
-                calcO = "";
-                calcP = "";
-                calcQ = "";
-                calcR = "";
-                calcS = "";
-                calcT = "";
-                calcU = "";
-                calcV = "";
-                calcW = "";
-                calcX = "";
-                calcY = "";
-                calcZ = "";
-                calcAA = "";
-                calcAB = "";
-                calcAC = "";
-                calcAD = "";
-
-                string[] value = y.Split('|');//.Where(x => x != "");
-
-                CarregarSheetBlocoC(sheet, i, value);
-
-                if (value.Length >= 39)
+                foreach (string y in C100)
                 {
-                    if (sheet.Cells[i, 1].Value.ToString() == "C170")
+
+                    if (w == y && y.Contains("|C100|"))
                     {
-                        if (calcTempC[countTemp - j].Substring(0, 1).Equals("0"))
-                        {
-                            calcA = "E";
+                        valido = true;
+                    }
 
-                            calcB = calcTempC[countTemp - j].Substring(2, 2);
-                            if ((calcTempC[countTemp - j].Count()) > 20)
+                    if (w != y && y.Contains("|C100|"))
+                    {
+                        valido = false;
+                    }
+
+                    if (valido && (y.Contains("|C100|") || y.Contains("|C170|")))
+                    {
+                        calcA = "";
+                        calcB = "";
+                        calcC = "";
+                        calcD = "";
+                        calcE = "";
+                        calcF = "";
+                        calcG = "";
+                        calcH = "";
+                        calcI = "";
+                        calcJ = "";
+                        calcL = "";
+                        calcK = "";
+                        calcM = "";
+                        calcN = "";
+                        calcO = "";
+                        calcP = "";
+                        calcQ = "";
+                        calcR = "";
+                        calcS = "";
+                        calcT = "";
+                        calcU = "";
+                        calcV = "";
+                        calcW = "";
+                        calcX = "";
+                        calcY = "";
+                        calcZ = "";
+                        calcAA = "";
+                        calcAB = "";
+                        calcAC = "";
+                        calcAD = "";
+
+                        string[] value = y.Split('|');//.Where(x => x != "");
+
+                        if (value.Length > 20)
+                        {
+
+                            CarregarSheetBlocoC(sheet, i, value);
+
+                            if (sheet.Cells[i, 1].Value.ToString() == "C100" || sheet.Cells[i, 1].Value.ToString() == "C170")
                             {
-                                calcC = calcTempC[countTemp - j].Substring(15, 3);
-                                calcE = calcTempC[countTemp - j].Substring(16, 8);
-                            }
-                            else
-                            {
-                                calcC = calcC.PadRight(5, ' ');
-                                calcE = calcE.PadLeft(8, '0');
-                            }
-
-                            calcD = calcTempC[countTemp - j].Substring(4, 9);
-
-                            calcC = calcC.Replace('*', ' ');
-                        }
-                        else
-                        {
-                            calcA = "S";
-
-                            calcB = calcTempC[countTemp - j].Substring(2, 2);
-                            calcD = calcTempC[countTemp - j].Substring(4, 9);
-
-                            if ((calcTempC[countTemp - j].Count()) >= 16)
-                            {
-                                calcC = calcTempC[countTemp - j].Substring(15, 3);
-                                calcE = calcTempC[countTemp - j].Substring(16, 8);
-                            }
-                            else
-                            {
-                                calcC = calcC.PadRight(5, ' ');
-                                calcE = calcE.PadLeft(8, '0');
-                            }
-
-                            calcC = calcC.Replace("*", "");
-                        }
-
-                        if (!string.IsNullOrEmpty(sheet.Cells[i, 2].Value.ToString()))
-                        {
-                            calcF = sheet.Cells[i, 2].Value.ToString().PadLeft(3, '0');
-                        }
-
-                        if (!string.IsNullOrEmpty(sheet.Cells[i, 3].Value.ToString()))
-                        {
-                            calcG = sheet.Cells[i, 3].Value.ToString();
-                        }
-
-                        if (!string.IsNullOrEmpty(sheet.Cells[i, 4].Value.ToString()))
-                        {
-                            calcH = sheet.Cells[i, 4].Value.ToString();
-                        }
-
-                        if (!string.IsNullOrEmpty(sheet.Cells[i, 11].Value.ToString()))
-                        {
-                            calcI = sheet.Cells[i, 11].Value.ToString();
-                        }
-
-                        if (!string.IsNullOrEmpty(sheet.Cells[i, 12].Value.ToString()))
-                        {
-                            calcJ = sheet.Cells[i, 12].Value.ToString();
-                        }
-
-                        if (calcG.ToString() != null && calcG.ToString() != "FALSO")
-                        {
-                            foreach (string g in calcR200)
-                            {
-                                if (g.Equals(calcG.ToString()))
+                                if (calcTempC[countTemp - j].Substring(0, 1).Equals("1"))
                                 {
-                                    calcK = g.Replace(",", "");
+                                    calcA = "E";
+
+                                    calcB = calcTempC[countTemp - j].Substring(2, 2);
+                                    if ((calcTempC[countTemp - j].Count()) > 20)
+                                    {
+                                        calcC = calcTempC[countTemp - j].Substring(15, 3);
+                                        calcE = calcTempC[countTemp - j].Substring(16, 8);
+                                    }
+                                    else
+                                    {
+                                        calcC = calcC.PadRight(5, ' ');
+                                        calcE = calcE.PadLeft(8, '0');
+                                    }
+
+                                    calcD = calcTempC[countTemp - j].Substring(4, 9);
+
+                                    calcC = calcC.Replace('*', ' ');
+                                }
+                                else
+                                {
+                                    calcA = "S";
+
+                                    calcB = calcTempC[countTemp - j].Substring(2, 2);
+                                    calcD = calcTempC[countTemp - j].Substring(4, 9);
+
+                                    if ((calcTempC[countTemp - j].Count()) > 20)
+                                    {
+                                        calcC = calcTempC[countTemp - j].Substring(15, 3);
+                                        calcE = calcTempC[countTemp - j].Substring(16, 8);
+                                    }
+                                    else
+                                    {
+                                        calcC = calcC.PadRight(5, ' ');
+                                        calcE = calcE.PadLeft(8, '0');
+                                    }
+
+                                    calcC = calcC.Replace("*", "");
                                 }
 
-                                if (calcK != "")
-                                    break;
+                                if (!string.IsNullOrEmpty(sheet.Cells[i, 2].Value.ToString()))
+                                {
+                                    calcF = sheet.Cells[i, 2].Value.ToString().PadLeft(3, '0');
+                                }
+                                else
+                                {
+                                    calcF = "0";
+                                    calcF = calcF.PadLeft(3, '0');
+                                }
 
-                                count++;
+                                if (!string.IsNullOrEmpty(sheet.Cells[i, 3].Value.ToString()))
+                                {
+                                    calcG = sheet.Cells[i, 3].Value.ToString();
+                                }
+                                else
+                                {
+                                    calcG = "0";
+                                    calcG = calcG.PadLeft(20, '0');
+                                }
+
+                                if (!string.IsNullOrEmpty(sheet.Cells[i, 4].Value.ToString()))
+                                {
+                                    calcH = sheet.Cells[i, 4].Value.ToString();
+                                }
+                                else
+                                {
+                                    calcH = " ";
+                                    calcH = calcH.PadRight(45, ' ');
+                                }
+
+                                if (!string.IsNullOrEmpty(sheet.Cells[i, 11].Value.ToString()))
+                                {
+                                    calcI = sheet.Cells[i, 11].Value.ToString();
+                                }
+                                else
+                                {
+                                    calcI = " ";
+                                    calcI = calcI.PadRight(4, ' ');
+                                }
+
+                                if (!string.IsNullOrEmpty(sheet.Cells[i, 12].Value.ToString()))
+                                {
+                                    calcJ = sheet.Cells[i, 12].Value.ToString();
+                                    calcJ = calcJ.Replace(",", "");
+                                }
+                                else
+                                {
+                                    calcJ = " ";
+                                    calcJ = calcJ.PadRight(6, ' ');
+                                }
+
+                                if (calcG.ToString() != null && calcG.ToString() != "FALSO")
+                                {
+                                    foreach (string g in calcR200)
+                                    {
+                                        if (g.Equals(calcG.ToString()))
+                                        {
+                                            calcK = g.Replace(",", "");
+                                        }
+
+                                        if (calcK != "")
+                                            break;
+
+                                        count++;
+                                    }
+                                }
+
+                                if(calcK.Length > 8)
+                                {
+                                    calcK = calcK.Substring(0, 8);
+                                }
+
+                                if(string.IsNullOrEmpty(calcK))
+                                {
+                                    calcK = " ";
+                                    calcK = calcK.PadRight(8, ' ');
+                                }
+
+                                if (!string.IsNullOrEmpty(sheet.Cells[i, 5].Value.ToString()))
+                                {
+                                    calcL = string.Format(@"{0:f}", sheet.Cells[i, 5].Value.ToString());
+                                    calcL = calcL.Replace(",", "");
+                                }
+                                else
+                                {
+                                    calcL = "000";
+                                }
+
+                                if (!string.IsNullOrEmpty(sheet.Cells[i, 6].Value.ToString()))
+                                {
+                                    calcM = sheet.Cells[i, 6].Value.ToString();
+                                }
+                                else
+                                {
+                                    calcM = "0";
+                                    calcM = calcM.PadLeft(17, '0');
+                                }
+
+                                if (!string.IsNullOrEmpty(sheet.Cells[i, 7].Value.ToString()) && calcL != null && calcL != "FALSO")
+                                {
+                                    number = int.TryParse(sheet.Cells[i, 7].Value.ToString(), out isNumeric);
+                                    if (number)
+                                    {
+                                        nCalc = float.Parse(sheet.Cells[i, 7].Value.ToString());
+                                        calcN = string.Format(@"{0:f}", nCalc / float.Parse(calcL));
+                                        calcN = calcN.Replace(",", "");
+                                    }
+                                    else
+                                    {
+                                        calcN = "0";
+                                    }
+                                }
+                                else
+                                {
+                                    calcN = "0";
+                                }
+
+                                if (!string.IsNullOrEmpty(sheet.Cells[i, 7].Value.ToString()))
+                                {
+                                    calcO = string.Format(@"{0:f}", sheet.Cells[i, 7].Value.ToString());
+                                    calcO = calcO.Replace(",", "");
+                                }
+                                else
+                                {
+                                    calcO = "0";
+                                    calcO = calcO.PadLeft(17, '0');
+                                }
+
+                                if (!string.IsNullOrEmpty(sheet.Cells[i, 8].Value.ToString()))
+                                {
+                                    calcP = string.Format(@"{0:f}", sheet.Cells[i, 8].Value.ToString());
+                                    calcP = calcP.Replace(",", "");
+                                }
+                                else
+                                {
+                                    calcP = "0";
+                                    calcP = calcP.PadLeft(17, '0');
+                                }
+
+                                if (!string.IsNullOrEmpty(sheet.Cells[i, 24].Value.ToString()))
+                                {
+                                    calcT = sheet.Cells[i, 24].Value.ToString();
+                                    calcT = calcT.Replace(",", "");
+                                }
+                                else
+                                {
+                                    calcT = "0";
+                                    calcT = calcT.PadLeft(17, '0');
+                                }
+
+                                if (!string.IsNullOrEmpty(sheet.Cells[i, 23].Value.ToString()))
+                                {
+                                    calcR = string.Format(@"{0:f}", sheet.Cells[i, 23].Value.ToString());
+                                    calcR = calcR.Replace(",", "");
+                                }
+                                else
+                                {
+                                    calcR = "0";
+                                    calcR = calcR.PadLeft(5, '0');
+                                }
+
+                                if (!string.IsNullOrEmpty(sheet.Cells[i, 22].Value.ToString()))
+                                {
+                                    calcS = string.Format(@"{0:f}", sheet.Cells[i, 22].Value.ToString());
+                                    calcS = calcS.Replace(",", "");
+                                }
+                                else
+                                {
+                                    calcS = "0";
+                                    calcS = calcS.PadLeft(17, '0');
+                                }
+
+                                if (!string.IsNullOrEmpty(sheet.Cells[i, 10].Value.ToString()))
+                                {
+                                    calcU = string.Format(@"{0:f}", sheet.Cells[i, 10].Value.ToString());
+                                }
+                                else
+                                {
+                                    calcU = " 0";
+                                    calcU = calcU.PadLeft(3, '0');
+                                }
+
+                                if (string.IsNullOrEmpty(sheet.Cells[i, 14].Value.ToString()))
+                                {
+                                    calcW = "000";
+                                }
+                                else
+                                {
+                                    calcW = string.Format(@"{0:f}", sheet.Cells[i, 14].Value.ToString());
+                                    calcW = calcW.Replace(",", "");
+                                }
+
+                                if (!string.IsNullOrEmpty(sheet.Cells[i, 13].Value.ToString()))
+                                {
+                                    calcX = sheet.Cells[i, 13].Value.ToString();
+                                    calcX = calcX.Replace(",", "");
+                                }
+                                else
+                                {
+                                    calcX = "0";
+                                    calcX = calcX.PadLeft(17, '0');
+                                }
+
+                                if (!string.IsNullOrEmpty(sheet.Cells[i, 15].Value.ToString()))
+                                {
+                                    calcY = string.Format(@"{0:f}", sheet.Cells[i, 15].Value.ToString());
+                                    calcY = calcY.Replace(",", "");
+                                }
+                                else
+                                {
+                                    calcY = "0";
+                                    calcY = calcY.PadLeft(17, '0');
+                                }
+
+                                if (!string.IsNullOrEmpty(sheet.Cells[i, 16].Value.ToString()))
+                                {
+                                    calcZ = string.Format(@"{0:f}", sheet.Cells[i, 16].Value.ToString());
+                                    calcZ = calcZ.Replace(",", "");
+                                }
+                                else
+                                {
+                                    calcZ = "0";
+                                    calcZ = calcZ.PadLeft(17, '0');
+                                }
+
+                                if (!string.IsNullOrEmpty(sheet.Cells[i, 18].Value.ToString()))
+                                {
+                                    calcAA = string.Format(@"{0:f}", sheet.Cells[i, 18].Value.ToString());
+                                    calcAA = calcAA.Replace(",", "");
+                                }
+                                else
+                                {
+                                    calcAA = "0";
+                                    calcAA = calcAA.PadLeft(17, '0');
+                                }
+
+                                if (sheet.Cells[i, 9].Value.ToString() == "0")
+                                {
+                                    calcAB = "S";
+                                }
+                                else
+                                {
+                                    calcAB = "N";
+                                }
+
+
+                                if (calcT.Equals("0,00"))
+                                {
+                                    calcQ = "2";
+                                }
+                                else
+                                {
+                                    calcQ = "1";
+                                }
+
+                                if (!string.IsNullOrEmpty(calcU) && calcU != "FALSO")
+                                {
+                                    if (int.Parse(calcU.Substring(2, 1)) < 3)
+                                    {
+                                        calcV = "1";
+                                    }
+                                    else if (int.Parse(calcU.Substring(2, 1)) == 9)
+                                    {
+                                        calcV = "3";
+                                    }
+                                    else if (int.Parse(calcU.Substring(2, 1)) == 7)
+                                    {
+                                        calcV = "1";
+                                    }
+                                    else
+                                    {
+                                        calcV = "2";
+                                    }
+                                }
+                                else
+                                {
+                                    calcV = "2";
+                                }
+
+                                if (sheet.Cells[i, 15].Value.ToString() == "1" && calcA == "S")
+                                {
+                                    calcAC = "50";
+                                }
+                                else if (sheet.Cells[i, 15].Value.ToString() == "2" && calcA == "S")
+                                {
+                                    calcAC = "52";
+                                }
+                                else if (sheet.Cells[i, 15].Value.ToString() == "1" && calcA == "E")
+                                {
+                                    calcAC = "00";
+                                }
+                                else
+                                {
+                                    calcAC = "02";
+                                }
+
+                                calcAD = calcA.Substring(0, 1) + calcB.Substring(0, 2) + calcC.PadRight(5, ' ') + calcD.Substring(0, 9) + calcE.Substring(0, 8) + calcF.Substring(0, 3) + calcG.PadRight(20, ' ') + calcH.PadRight(45, ' ') + calcI.Substring(0, 4) +
+                                    calcJ.PadRight(9, ' ') + calcK.PadLeft(8, '0') + calcL.PadLeft(17, '0') + calcM.PadRight(3, ' ') +
+                                    calcN.PadLeft(17, '0') + calcO.PadLeft(17, '0') + calcP.PadLeft(17, '0') + calcQ.Substring(0, 1) +
+                                    calcR.PadLeft(5, '0') + calcS.PadLeft(17, '0') + calcT.PadLeft(17, '0') + calcU.Substring(0, 3) + calcV.Substring(0, 1) +
+                                    calcW.PadLeft(5, '0') + calcX.PadLeft(17, '0') + calcY.PadLeft(17, '0') + calcZ.PadLeft(17, '0') +
+                                    calcAA.PadLeft(17, '0') + calcAB + calcAC.PadRight(2, ' ');
+
+                                x.WriteLine(calcAD);
+                                x.Flush();
                             }
-                        }
 
-                        if (!string.IsNullOrEmpty(sheet.Cells[i, 5].Value.ToString()))
-                        {
-                            calcL = string.Format(@"{0:f}", sheet.Cells[i, 5].Value.ToString());
-                            calcL = calcL.Replace(",", "");
-                        }
-                        else
-                        {
-                            calcL = "000";
-                        }
+                            countTemp++;
+                            i++;
 
-                        if (!string.IsNullOrEmpty(sheet.Cells[i, 6].Value.ToString()))
-                        {
-                            calcM = sheet.Cells[i, 6].Value.ToString();
-                        }
-
-                        if (!string.IsNullOrEmpty(sheet.Cells[i, 7].Value.ToString()) && calcL != null && calcL != "FALSO")
-                        {
-                            nCalc = float.Parse(sheet.Cells[i, 7].Value.ToString());
-                            calcN = string.Format(@"{0:f}", nCalc / float.Parse(calcL));
-                            calcN = calcN.Replace(",", "");
-                        }
-
-                        if (!string.IsNullOrEmpty(sheet.Cells[i, 7].Value.ToString()))
-                        {
-                            calcO = string.Format(@"{0:f}", sheet.Cells[i, 7].Value.ToString());
-                            calcO = calcO.Replace(",", "");
-                        }
-
-                        if (!string.IsNullOrEmpty(sheet.Cells[i, 8].Value.ToString()))
-                        {
-                            calcP = string.Format(@"{0:f}", sheet.Cells[i, 8].Value.ToString());
-                            calcP = calcP.Replace(",", "");
-                        }
-
-                        if (!string.IsNullOrEmpty(sheet.Cells[i, 24].Value.ToString()))
-                        {
-                            calcT = sheet.Cells[i, 24].Value.ToString();
-                            calcT = calcT.Replace(",", "");
-                        }
-
-                        if (!string.IsNullOrEmpty(sheet.Cells[i, 23].Value.ToString()))
-                        {
-                            calcR = string.Format(@"{0:f}", sheet.Cells[i, 23].Value.ToString());
-                            calcR = calcR.Replace(",", "");
-                        }
-
-                        if (!string.IsNullOrEmpty(sheet.Cells[i, 22].Value.ToString()))
-                        {
-                            calcS = string.Format(@"{0:f}", sheet.Cells[i, 22].Value.ToString());
-                            calcS = calcS.Replace(",", "");
-                        }
-
-                        if (!string.IsNullOrEmpty(sheet.Cells[i, 10].Value.ToString()))
-                        {
-                            calcU = string.Format(@"{0:f}", sheet.Cells[i, 10].Value.ToString());
-                        }
-
-                        if (string.IsNullOrEmpty(sheet.Cells[i, 14].Value.ToString()))
-                        {
-                            calcW = "000";
-                        }
-                        else
-                        {
-                            calcW = string.Format(@"{0:f}", sheet.Cells[i, 14].Value.ToString());
-                            calcW = calcW.Replace(",", "");
-                        }
-
-                        if (!string.IsNullOrEmpty(sheet.Cells[i, 13].Value.ToString()))
-                        {
-                            calcX = sheet.Cells[i, 13].Value.ToString();
-                            calcX = calcX.Replace(",", "");
-                        }
-
-                        if (!string.IsNullOrEmpty(sheet.Cells[i, 15].Value.ToString()))
-                        {
-                            calcY = string.Format(@"{0:f}", sheet.Cells[i, 15].Value.ToString());
-                            calcY = calcY.Replace(",", "");
-                        }
-
-                        if (!string.IsNullOrEmpty(sheet.Cells[i, 16].Value.ToString()))
-                        {
-                            calcZ = string.Format(@"{0:f}", sheet.Cells[i, 16].Value.ToString());
-                            calcZ = calcZ.Replace(",", "");
-                        }
-
-                        if (!string.IsNullOrEmpty(sheet.Cells[i, 18].Value.ToString()))
-                        {
-                            calcAA = string.Format(@"{0:f}", sheet.Cells[i, 18].Value.ToString());
-                            calcAA = calcAA.Replace(",", "");
-                        }
-
-                        if (sheet.Cells[i, 9].Value.ToString() == "0")
-                        {
-                            calcAB = "S";
-                        }
-                        else
-                        {
-                            calcAB = "N";
-                        }
-
-
-                        if (calcT.Equals("0,00"))
-                        {
-                            calcQ = "2";
-                        }
-                        else
-                        {
-                            calcQ = "1";
-                        }
-
-                        if (!string.IsNullOrEmpty(calcU) && calcU != "FALSO")
-                        {
-                            if (int.Parse(calcU.Substring(2, 1)) < 3)
+                            if (countTemp >= calcTempC.Count() && calcTempC.Count != i)
                             {
-                                calcV = "1";
-                            }
-                            else if (int.Parse(calcU.Substring(2, 1)) == 9)
-                            {
-                                calcV = "3";
-                            }
-                            else if (int.Parse(calcU.Substring(2, 1)) == 7)
-                            {
-                                calcV = "1";
-                            }
-                            else
-                            {
-                                calcV = "2";
+                                j++;
                             }
                         }
-                        else
-                        {
-                            calcV = "2";
-                        }
-
-                        if (sheet.Cells[i, 15].Value.ToString() == "1" && calcA == "S")
-                        {
-                            calcAC = "50";
-                        }
-                        else if (sheet.Cells[i, 15].Value.ToString() == "2" && calcA == "S")
-                        {
-                            calcAC = "52";
-                        }
-                        else if (sheet.Cells[i, 15].Value.ToString() == "1" && calcA == "E")
-                        {
-                            calcAC = "00";
-                        }
-                        else
-                        {
-                            calcAC = "02";
-                        }
-
-                        calcAD = calcA + calcB + calcC.PadRight(5, ' ') + calcD + calcE + calcF + calcG.PadRight(20, ' ') + calcH.PadRight(45, ' ') + calcI +
-                            calcJ.PadRight(6, ' ') + calcK.PadLeft(17, '0') + calcL.PadLeft(17, '0') + calcM.PadRight(3, ' ').PadLeft(3, '0') +
-                            calcN.PadLeft(17, '0') + calcO.PadLeft(17, '0') + calcP.PadLeft(17, '0') + calcQ +
-                            calcR.PadLeft(5, '0') + calcS.PadLeft(17, '0') + calcT.PadLeft(17, '0') + calcU + calcV +
-                            calcW.PadLeft(5, '0') + calcX.PadLeft(17, '0') + calcY.PadLeft(17, '0') + calcZ.PadLeft(17, '0') +
-                            calcAA.PadLeft(17, '0') + calcAB + calcAC.PadRight(2, ' ');
-
-                        x.WriteLine(calcAD);
-                        x.Flush();
                     }
                 }
-                countTemp++;
-                i++;
-
-                if (countTemp >= calcTempC.Count() && calcTempC.Count != i)
-                {
-                    j++;
-                }
-
             }
         }
 
         private static void CarregarSheetBlocoC(ExcelWorksheet sheet, int i, string[] value)
         {
-            int count = 0;
-
             for (int j = 1; j < value.Count(); j++)
             {
                 if (value.Length >= 30)
@@ -2002,12 +2223,11 @@ namespace In86
             path = caminho + @"\Bloco4.3.1.txt";
             x = File.CreateText(path);
 
-            int a2 = 0;
             i = 2;
             string calcA, calcB, calcC, calcD, calcE, calcF, calcG, calcH, calcI, calcJ, calcK, calcL, calcM, calcN, calcO, calcP, calcQ, calcR, calcS, calcT, calcU, calcV, calcW, calcX, calcY, calcZ, calcAA, calcAB, calcAC, calcAD, calcAE, calcAF, calcAG;
             string final;
 
-            foreach (string y in C100)
+            foreach (string y in C100431)
             {
                 calcA = "";
                 calcB = "";
@@ -2047,10 +2267,8 @@ namespace In86
                 string[] value = y.Split('|');//.Where(x => x != "");
                 CarregaBlocoCSheet40(sheet, i, value);
 
-                if (sheet.Cells[i, 1].Value.ToString() == "C100" && sheet.Cells[i, 2].Value.ToString() == "0")
+                if (sheet.Cells[i, 1].Value.ToString() == "C100" && sheet.Cells[i, 2].Value.ToString() == "1")
                 {
-                    /*if (sheet.Cells[i, 1].Value != null && sheet.Cells[i, 3].Value != null && sheet.Cells[i, 4].Value != null)
-                    {*/
                     if (sheet.Cells[i, 4].Value.ToString() == "0")
                     {
                         calcA = "E";
@@ -2064,15 +2282,29 @@ namespace In86
                     {
                         calcB = sheet.Cells[i, 5].Value.ToString();
                     }
+                    else
+                    {
+                        calcB = "00";
+                    }
 
                     if (sheet.Cells[i, 7].Value != null)
                     {
                         calcC = sheet.Cells[i, 7].Value.ToString().PadLeft(3, '0').PadRight(5, ' ');
                     }
+                    else
+                    {
+                        calcC = "0";
+                        calcC = calcC.PadRight(5, ' ');
+                    }
 
                     if (sheet.Cells[i, 8].Value != null)
                     {
                         calcD = sheet.Cells[i, 8].Value.ToString().PadLeft(9, '0');
+                    }
+                    else
+                    {
+                        calcD = "0";
+                        calcD = calcD.PadLeft(9, '0');
                     }
 
                     if (sheet.Cells[i, 10].Value.ToString() == "")
@@ -2086,7 +2318,7 @@ namespace In86
 
                     if (sheet.Cells[i, 4].Value.ToString() == "")
                     {
-                        calcF = "              ";
+                        calcF = "00000000      ";
                     }
                     else
                     {
@@ -2107,10 +2339,20 @@ namespace In86
                         calcH = sheet.Cells[i, 16].Value.ToString().Replace(",", "");
                         calcH = calcH.PadLeft(17, '0');
                     }
+                    else
+                    {
+                        calcH = "0";
+                        calcH = calcH.PadLeft(17, '0');
+                    }
 
                     if (sheet.Cells[i, 14].Value.ToString() != null)
                     {
                         calcI = sheet.Cells[i, 14].Value.ToString().Replace(",", "");
+                        calcI = calcI.PadLeft(17, '0');
+                    }
+                    else
+                    {
+                        calcI = "0";
                         calcI = calcI.PadLeft(17, '0');
                     }
 
@@ -2119,10 +2361,20 @@ namespace In86
                         calcJ = sheet.Cells[i, 18].Value.ToString().Replace(",", "");
                         calcJ = calcJ.PadLeft(17, '0');
                     }
+                    else
+                    {
+                        calcJ = "0";
+                        calcJ = calcJ.PadLeft(17, '0');
+                    }
 
                     if (sheet.Cells[i, 19].Value.ToString() != "")
                     {
                         calcK = sheet.Cells[i, 19].Value.ToString().Replace(",", "");
+                        calcK = calcK.PadLeft(17, '0');
+                    }
+                    else
+                    {
+                        calcK = "0";
                         calcK = calcK.PadLeft(17, '0');
                     }
 
@@ -2131,10 +2383,20 @@ namespace In86
                         calcL = sheet.Cells[i, 20].Value.ToString().Replace(",", "");
                         calcL = calcL.PadLeft(17, '0');
                     }
+                    else
+                    {
+                        calcL = "0";
+                        calcL = calcL.PadLeft(17, '0');
+                    }
 
                     if (sheet.Cells[i, 25].Value.ToString() != "")
                     {
                         calcM = sheet.Cells[i, 25].Value.ToString().Replace(",", "");
+                        calcM = calcM.PadLeft(17, '0');
+                    }
+                    else
+                    {
+                        calcM = "0";
                         calcM = calcM.PadLeft(17, '0');
                     }
 
@@ -2143,10 +2405,20 @@ namespace In86
                         calcN = sheet.Cells[i, 24].Value.ToString().Replace(",", "");
                         calcN = calcN.PadLeft(17, '0');
                     }
+                    else
+                    {
+                        calcN = "0";
+                        calcN = calcN.PadLeft(17, '0');
+                    }
 
                     if (sheet.Cells[i, 12].Value.ToString() != "")
                     {
                         calcO = sheet.Cells[i, 12].Value.ToString().Replace(",", "");
+                        calcO = calcO.PadLeft(17, '0');
+                    }
+                    else
+                    {
+                        calcO = "0";
                         calcO = calcO.PadLeft(17, '0');
                     }
 
@@ -2260,15 +2532,9 @@ namespace In86
                     calcAB = "                                                  ";
 
                     final = calcA + calcB + calcC + calcD + calcE + calcF + calcG + calcH + calcI + calcJ + calcK + calcL + calcM + calcN + calcO + calcP + calcQ + calcR + calcS + calcT + calcU + calcV + calcW + calcY + calcZ + calcAA + calcAB + calcAC + calcAD + calcAE + calcAF + calcAG;
-                    /* final = new string((from c in final
-                                         where char.IsWhiteSpace(c) || char.IsLetterOrDigit(c)
-                                         select c
-                    ).ToArray());*/
 
                     x.WriteLine(final);
                     x.Flush();
-                    a2++;
-                    //}
                 }
 
                 i++;
@@ -2324,7 +2590,11 @@ namespace In86
                     }
                     if (j == 14)
                     {
-                        sheet.Cells[1, 14].Value = value[j];
+                        sheet.Cells[i, 14].Value = value[j];
+                    }
+                    if (j == 15)
+                    {
+                        sheet.Cells[i, 15].Value = value[j];
                     }
                     if (j == 18)
                     {
@@ -2382,6 +2652,18 @@ namespace In86
                     {
                         sheet.Cells[i, 42].Value = value[j];
                     }
+                    if (j == 23)
+                    {
+                        sheet.Cells[i, 23].Value = value[j];
+                    }
+                    if (j == 22)
+                    {
+                        sheet.Cells[i, 22].Value = value[j];
+                    }
+                    if (j == 9)
+                    {
+                        sheet.Cells[i, 9].Value = value[j];
+                    }
                 }
                 else
                 {
@@ -2431,7 +2713,7 @@ namespace In86
                     }
                     if (j == 14)
                     {
-                        sheet.Cells[1, 14].Value = value[j];
+                        sheet.Cells[i, 14].Value = value[j];
                     }
                     if (j == 15)
                     {
@@ -2834,6 +3116,7 @@ namespace In86
 
         private string CarregaListaDados(ref int counter)
         {
+
             string line;
             // Read the file and display it line by line.  
             System.IO.StreamReader file =
@@ -2856,6 +3139,11 @@ namespace In86
                 if (line.Contains("|C100|") || line.Contains("|C170|") || line.Contains("|C113|") || line.Contains("|C120|"))
                 {
                     C100.Add(line);
+                }
+
+                if (line.Contains("|C100|"))
+                {
+                    C100431.Add(line);
                 }
 
                 if (line.Contains("|0150|"))
@@ -2989,6 +3277,22 @@ namespace In86
                     {
                         range = true;
                     }
+
+                    if (line.Contains("|A010|") || line.Contains("|C010|"))
+                    {
+                        if (!line.Contains("|" + R0[i] + "|"))
+                        {
+                            range = false;
+                        }
+                    }
+
+                    if (line.Contains("|B010|") || line.Contains("|D010|") || line.Contains("|E010") || line.Contains("F010") ||
+                        line.Contains("|G010|") || line.Contains("|H010|") || line.Contains("|I010|") || line.Contains("|J010|") ||
+                        line.Contains("|K010|") || line.Contains("|L010|") || line.Contains("|M010|") || line.Contains("|N010|") ||
+                        line.Contains("|O010|") || line.Contains("|P010|"))
+                    {
+                        range = false;
+                    }
                 }
             }
 
@@ -3001,8 +3305,15 @@ namespace In86
         public void RemoveDuplicada()
         {
             var temp = new List<string>();
+            string[] x;
+            string a = "", a1 = "", a2 = "", a3 = "", a4 = "";
+            string b1 = "", b2 = "", b3 = "", b4 = "", bb = "";
+            string[] w;
+            bool primeiro = false;
+            int count = 0;
+            List<string> linhas = new List<string>();
 
-            if (!C100.Any())
+            if (C100.Any())
             {
                 temp = C100.Distinct().ToList();
 
@@ -3010,13 +3321,87 @@ namespace In86
 
                 foreach (var y in temp)
                 {
-                    C100.Add(y);
+                    //C100.Add(y);
+
+                    x = y.Split('|');
+                    for (int i = 0; i < x.Length; i++)
+                    {
+                        if (i == 2)
+                        {
+                            a1 = x[2].ToString();
+                        }
+
+                        if (i == 3)
+                        {
+                            a2 = x[3].ToString();
+                        }
+
+                        if (i == 4)
+                        {
+                            a3 = x[4].ToString();
+                        }
+
+                        if (i == 8)
+                        {
+                            a4 = x[8].ToString();
+                            break;
+                        }
+                    }
+
+                    a = string.Format("{0}{1}{2}{3}", a1, a2, a3, a4);
+                    primeiro = true;
+
+                    foreach (var b in y)
+                    {
+                        w = y.Split('|');
+                        for (int j = 0; j < w.Length; j++)
+                        {
+                            if (j == 2)
+                            {
+                                b1 = x[2].ToString();
+                            }
+
+                            if (j == 3)
+                            {
+                                b2 = x[3].ToString();
+                            }
+
+                            if (j == 4)
+                            {
+                                b3 = x[4].ToString();
+                            }
+
+                            if (j == 8)
+                            {
+                                b4 = x[8].ToString();
+                                break;
+                            }
+                        }
+
+                        bb = string.Format("{0}{1}{2}{3}", b1, b2, b3, b4);
+
+                        if (a == bb && primeiro)
+                        {
+                            if (!linhas.Contains(y.ToString()))
+                            {
+                                C100.Add(y.ToString());
+                                primeiro = false;
+                            }
+                        }
+
+
+                        count++;
+
+                    }
+
                 }
 
                 temp.Clear();
+
+
             }
 
-            if (!A100.Any())
+            if (A100.Any())
             {
                 temp = A100.Distinct().ToList();
 
@@ -3030,7 +3415,7 @@ namespace In86
                 temp.Clear();
             }
 
-            if (!C113.Any())
+            if (C113.Any())
             {
                 temp = C113.Distinct().ToList();
 
@@ -3044,7 +3429,7 @@ namespace In86
                 temp.Clear();
             }
 
-            if (!R200.Any())
+            if (R200.Any())
             {
                 temp = R200.Distinct().ToList();
 
@@ -3058,7 +3443,7 @@ namespace In86
                 temp.Clear();
             }
 
-            if (!R150.Any())
+            if (R150.Any())
             {
                 temp = R150.Distinct().ToList();
 
@@ -3072,7 +3457,7 @@ namespace In86
                 temp.Clear();
             }
 
-            if (!R1100.Any())
+            if (R1100.Any())
             {
                 temp = R1100.Distinct().ToList();
 
